@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>chat</title>
+    <link rel="stylesheet" href="http://cdn.amazeui.org/amazeui/2.7.2/css/amazeui.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="windows">
+            <div class="background">
+                <div style="background-size: 1920px 1030px;background-image: url('/images/b.jpg');"></div>
+            </div>
+            <div class="mask-layout" id="maskLayout" style="display: none;"></div>
+            <div class="chatRoom">
+                <header>
+                    <div class="logo">
+                        <img src="https://assets.suisuijiang.com/images/logo.b3e14.png">
+                    </div>
+                    <div class="nav-list"></div>
+                    <div class="user-panel">
+                        <div class="online" title="在线"></div>
+                        <div class="avatar-text" title="查看个人信息"></div>
+                    </div>
+                </header>
+                <div class="body">
+                    <div class="user-list">
+                        <div class="user-list-item" data-user="all">
+                            <img class="avatar-image" src="https://api.adorable.io/avatars/40/群聊频道" alt="">
+                            <div class="unread">3</div>
+                            <div class="content">
+                                <div>
+                                    <p>群聊</p>
+                                    <p>11:25</p>
+                                </div>
+                                <div>
+                                    <p>mdzz: 请个假都没人回我吗</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-panel" chat-type="all">
+                        <div class="chat-panel-header">
+                            <div><img class="avatar-image" src="https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40"
+                                    style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
+                                <p>群聊</p>
+                            </div>
+                            <div>
+                                <div><i class="icon" title="公告"></i></div>
+                                <div><i class="icon" title="关于"></i></div>
+                            </div>
+                        </div>
+                        <div class="message-list">
+                        </div>
+                        <div class="input-box">
+                            <input type="text" placeholder="输入消息" maxlength="1024">
+                        </div>
+
+                        <div class="user-info" style="opacity: 0; transform: scale(0.4); display: none;">
+                            
+                        </div>
+
+                    </div>
+                <div class="empty-chat-panel" chat-type="empty"></div>
+            </div>
+        </div>
+    </div>
+    <div class="import-username">
+        <div class="am-modal am-modal-prompt" tabindex="-1" id="my-prompt">
+            <div class="am-modal-dialog">
+                <div class="am-modal-hd">欢迎来到聊天室</div>
+                <div class="am-modal-bd">
+                    Please enter your nickname
+                    <input type="text" placeholder="请填写你的昵称" class="am-modal-prompt-input">
+                </div>
+                <div class="am-modal-footer">
+                    <span class="am-modal-btn" data-am-modal-confirm>确认</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.16.2/axios.min.js"></script>
+    <script src="http://cdn.amazeui.org/amazeui/2.7.2/js/amazeui.min.js"></script>
+    <script src="/js/chat.js"></script>
+</body>
+
+</html>
