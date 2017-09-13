@@ -13,6 +13,12 @@ http.listen(3000, function() {
 
 var users = {};
 
+// 暂时替代 database
+var database = {
+    all: [],
+};
+
+
 // socket.io code
 io.on('connection', function(socket) {
 
@@ -33,12 +39,23 @@ io.on('connection', function(socket) {
         console.log(res);
         var to = res.to;
         var from = res.username;
+        var r = [];
+        r.push(res);
         if(to === 'all') {
-            io.emit('message',res);     // 全体发送
+            io.emit('message',r);     // 全体发送
+            database.all.push(r);
         }else {
-            users[to].emit('message',res);   // 只对特别的人发送
-            users[username].emit('message',res);
+            users[to].emit('message',r);   // 只对特别的人发送
+            users[from].emit('message',r);
         }
+        console.log(database);
+    });
+
+    // 监听调取messages
+    socket.on('take messages', function(res) {
+        // 谁调取聊天记录
+        console.log(res.from + '调取聊天记录');
+        users[res.from].emit('take messages', database[res.take]);
     });
 
 });
