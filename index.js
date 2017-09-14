@@ -43,7 +43,7 @@ io.on('connection', function(socket) {
         r.push(res);
         if(to === 'all') {
             io.emit('message',r);     // 全体发送
-            database.all.push(r);
+            database.all.push(res);
         }else {
             users[to].emit('message',r);   // 只对特别的人发送
             users[from].emit('message',r);

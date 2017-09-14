@@ -532,8 +532,8 @@ Connect.prototype = {
     },
     // 渲染消息
     renderMsg(res) {
+        console.log(res);
         var $messages = $('.message-list');
-
         for(var i in res) {
             var isMy = c.username == res[i].username ? true : false;
             var commonHtml = `
