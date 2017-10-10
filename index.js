@@ -4,8 +4,16 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var path = require('path');
 
+
 app.use(express.static(path.join('public')));
 app.use('/module', express.static('node_modules'));
+
+
+app.use('/login', express.static('public/login.html'));
+app.use('/register', express.static('public/register.html'));
+// 引入数据库模块
+var login = require('./server/login.js');
+app.use(login);
 
 http.listen(3000, function() {
     console.log('app is running of port 3000');

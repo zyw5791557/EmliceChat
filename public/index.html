@@ -22,7 +22,11 @@
                     <div class="logo">
                         <img src="https://assets.suisuijiang.com/images/logo.b3e14.png">
                     </div>
-                    <div class="nav-list"></div>
+                    <div class="nav-list">
+                        <div class="nav-list-item selected" title="聊天"><i class="icon"></i></div>
+                        <div class="nav-list-item " title="联系人"><i class="icon"></i></div>
+                        <div class="nav-list-item " title="系统设置"><i class="icon"></i></div>
+                    </div>
                     <div class="user-panel">
                         <div class="online" title="在线"></div>
                         <div class="avatar-text" title="查看个人信息"></div>
@@ -31,8 +35,8 @@
                 <div class="body">
                     <div class="user-list">
                         <div class="user-list-item" data-user="all">
-                            <img class="avatar-image" src="https://api.adorable.io/avatars/40/群聊频道" alt="">
-                            <div class="unread">3</div>
+                            <img class="avatar-image" src="https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40" alt="">
+                            <div class="unread">0</div>
                             <div class="content">
                                 <div>
                                     <p>群聊</p>
@@ -44,29 +48,41 @@
                             </div>
                         </div>
                     </div>
-                <div class="empty-chat-panel" chat-type="empty"></div>
+                    <div class="empty-chat-panel" chat-type="empty"></div>
+                </div>
+                <!-- 系统设置 -->
+                <div class="system-setting" style="transform:scale(0.4);opacity:0;">
+                    <div><span>系统设置</span><i class="icon"></i></div>
+                    <div>
+                        <div class="switch"><span>启用桌面通知 (暂未开放)</span>
+                            <div class="switchBtn off"></div>
+                        </div>
+                        <div class="switch"><span>启用声音通知 (暂未开放)</span>
+                            <div class="switchBtn off"></div>
+                        </div>
+                        <a class="button" href="https://github.com/zyw5791557/EmliceChat" target="_blank">
+                            <i class="icon"></i>
+                            <span>源码</span>
+                        </a>
+                        <a
+                            class="button" href="https://www.emlice.com" rel="noopener noreferrer" target="_blank">
+                            <i class="icon"></i>
+                            <span>作者</span>
+                        </a>
+                        <a class="button" id="logoutBtn">
+                            <i class="icon"></i>
+                            <span>登出</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="import-username">
-        <div class="am-modal am-modal-prompt" tabindex="-1" id="my-prompt">
-            <div class="am-modal-dialog">
-                <div class="am-modal-hd">欢迎来到聊天室</div>
-                <div class="am-modal-bd">
-                    Please enter your nickname
-                    <input type="text" placeholder="请填写你的昵称" class="am-modal-prompt-input">
-                </div>
-                <div class="am-modal-footer">
-                    <span class="am-modal-btn" data-am-modal-confirm>确认</span>
-                </div>
-            </div>
-        </div>
-    </div>
     </div>
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/layer/3.0.3/layer.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.bootcss.com/axios/0.16.2/axios.min.js"></script>
-    <script src="http://cdn.amazeui.org/amazeui/2.7.2/js/amazeui.min.js"></script>
+    <!-- <script src="http://cdn.amazeui.org/amazeui/2.7.2/js/amazeui.min.js"></script> -->
     <script src="/js/chat.js"></script>
 </body>
 

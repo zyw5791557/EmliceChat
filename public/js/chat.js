@@ -1,4 +1,11 @@
 
+/**
+ * c    连接实例
+ * app  应用实例
+ */
+var c,app;
+
+
 // 连接命名
 var c,
 $doc = $(document),
@@ -13,59 +20,6 @@ $body = $('.body');
 $empty.show();
 $all.hide();
 
-// init App action
-function App() {
-    this.init();
-}
-
-App.prototype = {
-    init() {
-        this.openAllChat();
-        this.player();
-    },
-    openAllChat() {
-        $allUser.on('click', function () {
-            var len = $('.chat-panel').length;
-            if(len != 0) return;
-            $empty.remove();
-            var dataObj = {
-                com: {
-                    avatar: 'https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40',
-                    username: '群聊'
-                },
-                usr: {
-                    avatar: '',
-                    username: ''
-                },
-                float: {
-                    peoples: 0
-                }
-            };
-            $body.append(components.chatPanel(dataObj,'all'));
-            c.takeMsg({
-                from: c.username,
-                take: 'all'
-            });
-            acceptMsg(function(data) {
-                if(data.length !== 0) {
-                    console.log(data);
-                    c.renderMsg(data);
-                }
-            });
-        });
-    },
-    player() {
-        axios.get('https://www.emlice.top/api/music/url?id=432506345').then(res => {
-            var data = res.data.data[0].url;
-            var a = new Audio();
-            a.src = data.replace('http', 'https');
-            a.play();
-            a.loop = 'loop';
-        });
-    },
-}
-
-var app = new App();
 
 // components 组件分发
 function Components() {
@@ -585,23 +539,7 @@ Connect.prototype = {
 }
 
 
-// 输入用户名
-$('#my-prompt').modal({
-    relatedTarget: this,
-    closeViaDimmer: false,
-    onConfirm: function (e) {
-        var username = e.data.trim();
-        if (username === '' || username === undefined) {
-            alert('昵称不能为空, 请刷新重新输入您的昵称');
-            return;
-        } else {
-            // 初始化连接
-            c = new Connect();
-            c.username = username;
-            c.usernameEmit(username);
-        }
-    }
-});
+
 
 
 // messages
@@ -635,3 +573,130 @@ function acceptMsg(fn){
         fn(data);
     });
 }
+
+
+
+// init App action
+function App() {
+    this.init();
+}
+
+App.prototype = {
+    init() {
+        this.openAllChat();
+        this.player();
+        this.checkLogin();
+        this.eventListeners();
+    },
+    checkLogin() {      // 登录状态监测
+        var userName = localStorage.getItem('UserName');
+        if(userName === null || userName === undefined) {
+            location.href = '/login';
+        }else {
+            // 初始化连接
+            c = new Connect();
+            c.username = userName;
+            c.usernameEmit(userName);
+        }
+    },
+    logout() {          // 退出登录
+        localStorage.removeItem('UserName');
+        location.href = '/login';
+    },
+    eventListeners() {      // 应用程序事件
+        $('.nav-list .nav-list-item').on('click', function(e) {
+            var e = e || window.event;
+            // 阻止事件冒泡
+            e.stopPropagation();
+            $(this).addClass('selected').siblings().removeClass('selected');
+            var t = $(this).attr('title');
+            if(t === '联系人') {
+                layer.msg('暂未开放');
+            }
+            if(t === '系统设置') {
+                // 系统设置开启
+                $('.system-setting')
+                .css({
+                    opacity: 1,
+                    transform: 'scale(1)'
+                });
+                $mask.show();
+            }
+        });
+        // 关闭系统设置
+        $('.system-setting').find('span:contains("系统设置")').siblings('i').on('click',function() {
+            $('.system-setting')
+            .css({
+                opacity: 0,
+                transform: 'scale(0)'
+            })
+            $mask.hide();
+        });
+        $('.system-setting').on('click', function(e) {
+            var e = e || window.event;
+            e.stopPropagation();
+        });
+        $(document).on('click', function(e) {
+            // 系统设置关闭
+            $('.system-setting').css({
+                opacity: 0,
+                transform: 'scale(0)'
+            });
+            $mask.hide();
+        });
+        // switch 开关
+        $('.system-setting .switchBtn').on('click', function(e) {
+            var f = $(this).hasClass('off');
+            if(f) {
+                $(this).removeClass('off').addClass('on');
+            }else {
+                $(this).removeClass('on').addClass('off');
+            }
+        });
+
+        // 退出
+        $('#logoutBtn').on('click',this.logout);
+    },
+    openAllChat() {
+        $allUser.on('click', function () {
+            var len = $('.chat-panel').length;
+            if(len != 0) return;
+            $empty.remove();
+            var dataObj = {
+                com: {
+                    avatar: 'https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40',
+                    username: '群聊'
+                },
+                usr: {
+                    avatar: '',
+                    username: ''
+                },
+                float: {
+                    peoples: 0
+                }
+            };
+            $body.append(components.chatPanel(dataObj,'all'));
+            c.takeMsg({
+                from: c.username,
+                take: 'all'
+            });
+            acceptMsg(function(data) {
+                if(data.length !== 0) {
+                    console.log(data);
+                    c.renderMsg(data);
+                }
+            });
+        });
+    },
+    player() {
+        axios.get('https://www.emlice.top/api/music/url?id=436514312').then(res => {
+            var data = res.data.data[0].url;
+            var a = new Audio();
+            a.src = data.replace('http', 'https');
+            a.play();
+            a.loop = 'loop';
+        });
+    },
+}
+
+app = new App();

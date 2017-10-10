@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Register</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="window">
+            <div class="background"></div>
+            <div class="login">
+                <div>
+                    <div>
+                        <img class="avatar-image" src="./images/user.jpg" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+                    </div>
+                    <div>
+                        <span style="position: relative; top: -4px;">滴滴,新司机打卡~</span>
+                        <div class="input normal">
+                            <div>
+                                <i class="icon"> </i>
+                            </div>
+                            <input id="name" type="text" placeholder="用户名">
+                        </div>
+                        <div class="input normal">
+                            <div>
+                                <i class="icon"> </i>
+                            </div>
+                            <input id="pwd" type="password" placeholder="密码">
+                        </div>
+                        <div>
+                            <span id="loginBtn">登录</span>
+                            <button id="registerBtn">注册</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/layer/3.0.3/layer.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.16.2/axios.min.js"></script>
+    <script>
+        // 注册接口连接
+
+        var api = '/api/register';
+
+        $('#registerBtn').on('click', function () {
+            var name = $('#name').val();
+            var pwd = $('#pwd').val();
+            axios({
+                method: 'post',
+                url: api,
+                data: {
+                    name: name,
+                    pwd: pwd
+                }
+            }).then(res => {
+                var c = res.data.Code;
+                if (c === 0) {
+                    // 注册成功
+                    layer.msg('注册成功, 即将自动跳转。');
+                    setTimeout(function () {
+                        localStorage.setItem('UserName', name);
+                        location.href = '/';
+                    }, 1000);
+                } else if (c === 1) {
+                    // 账号已存在, 请重新输入一个账号
+                    layer.msg('账号已存在, 请重新输入一个账号。');
+                }
+                console.log(layer);
+            }).catch(err => {
+                alert('登录失败, 请检查网络连接是否正常。');
+            });
+        });
+
+        //   跳转登录窗口
+        $('#loginBtn').on('click', function () {
+            location.href = "/login";
+        });
+    </script>
+</body>
+
+</html>
