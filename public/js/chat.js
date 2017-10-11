@@ -391,6 +391,7 @@ Date.prototype.format = function (fmt) {
 // user info 实例
 function UserInfo() {
     this.init();
+    this.userInfoFlag = true;
 }
 UserInfo.prototype = {
     init: function () {
@@ -399,7 +400,11 @@ UserInfo.prototype = {
         this.openChat();
     },
     openAvatarInfo: function () {
+        var _this = this;
         $win.on('click', '.avatar-image.user-icon', function () {
+            var uif = _this.userInfoFlag;
+            if(uif === false) return;
+            _this.userInfoFlag = false;
             var src = $(this).attr('src');
             var username = $(this).attr('data-username');
             var f = $('.chat-panel').attr('chat-type');
@@ -430,11 +435,12 @@ UserInfo.prototype = {
                 opacity: 1,
                 transform: 'scale(1)',
             });
-            
         });
     },
     close: function () {
+        var _this = this;
         $win.on('click', '.user-info i.icon', function () {
+            _this.userInfoFlag = true;
             $userInfoModel.css({
                 opacity: 0,
                 transform: 'scale(0.4)',
@@ -444,7 +450,9 @@ UserInfo.prototype = {
         });
     },
     openChat:function() {
+        var _this = this;
         $win.on('click', '.singleChatBtn', function() {
+            _this.userInfoFlag = true;
             var username = $(this).attr('data-to');
             var avatar = $(this).attr('data-avatar');
             
@@ -580,11 +588,12 @@ socket.on('message', function (res) {
 
 
 // 接受历史记录
-function acceptMsg(fn){
-    socket.on('take messages', function(data) {
-        fn(data);
-    });
-}
+socket.on('take messages', function(data) {
+    if(data.length !== 0) {
+        console.log('调取离线记录：',data);
+        c.renderMsg(data);
+    }
+});
 
 
 
@@ -671,15 +680,12 @@ App.prototype = {
     },
     openAllChat() {
         $body.on('click', '.user-list-item', function () {
-            $('.chat-panel').remove();
             var dataUserPanel = $(this).attr('data-user');
-            // 显示群聊
-            $('.chat-panel').hide();
-            $('.chat-panel[chat-type='+ dataUserPanel +']').show();
-
-            var len = $('.chat-panel').length;
-            if(len != 0) return;
-            $empty.remove();
+            var f = $('.chat-panel').attr('chat-type');
+            if(dataUserPanel === f) return;
+            $('.chat-panel').remove();
+            // 如果 $empty 存在就删掉它
+            $empty && $empty.remove();
             var dataObj = {
                 com: {
                     avatar: 'https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40',
@@ -697,12 +703,6 @@ App.prototype = {
             c.takeMsg({
                 from: c.username,
                 take: dataUserPanel
-            });
-            acceptMsg(function(data) {
-                if(data.length !== 0) {
-                    console.log('调取离线记录：',data);
-                    c.renderMsg(data);
-                }
             });
         });
     },
