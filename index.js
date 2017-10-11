@@ -11,9 +11,18 @@ app.use('/module', express.static('node_modules'));
 
 app.use('/login', express.static('public/login.html'));
 app.use('/register', express.static('public/register.html'));
+
 // 引入数据库模块
-var login = require('./server/login.js');
-app.use(login);
+var Api = require('./server/api.js');
+app.use(Api);
+
+var mongoose = require('mongoose');
+require('./server/connect.js');
+require('./server/model.js');
+// 获取 messages 集合并指向 Messages 
+var Messages = mongoose.model('messages');
+
+
 
 http.listen(3000, function() {
     console.log('app is running of port 3000');
@@ -21,10 +30,6 @@ http.listen(3000, function() {
 
 var users = {};
 
-// 暂时替代 database
-var database = {
-    all: [],
-};
 
 
 // socket.io code
@@ -45,25 +50,32 @@ io.on('connection', function(socket) {
 
     socket.on('message', function(res) {
         console.log(res);
+        // 把消息保存到数据库
+        var msg = new Messages(res);
+        msg.save();
+
         var to = res.to;
-        var from = res.username;
+        var from = res.from;
         var r = [];
         r.push(res);
         if(to === 'all') {
             io.emit('message',r);     // 全体发送
-            database.all.push(res);
         }else {
-            users[to].emit('message',r);   // 只对特别的人发送
-            users[from].emit('message',r);
+            users[to] && users[to].emit('message',r);   // 只对特别的人发送
+            users[from] && users[from].emit('message',r);
         }
-        console.log(database);
     });
 
     // 监听调取messages
     socket.on('take messages', function(res) {
-        // 谁调取聊天记录
-        console.log(res.from + '调取聊天记录');
-        users[res.from].emit('take messages', database[res.take]);
+        // 调取数据库消息
+        Messages.find({to: res.take}, function(err, result) {
+            // 谁调取聊天记录
+            console.log(res.from + '调取聊天记录');
+            users[res.from].emit('take messages', result);
+        });
+
+        
     });
 
 });

@@ -12,9 +12,7 @@ $doc = $(document),
 $win = $('#app .windows'),
 $empty = $('.empty-chat-panel[chat-type=empty]'),
 $all = $('.chat-panel[chat-type=all]'),
-$allUser = $('.user-list-item[data-user=all]'),
 $mask = $('.mask-layout'),
-$userInfoModel = $('.user-info'),
 $body = $('.body');
 
 $empty.show();
@@ -22,15 +20,15 @@ $all.hide();
 
 
 // components 组件分发
-function Components() {
+function MyComponents() {
 
 }
 
-Components.prototype = {
+MyComponents.prototype = {
     chatPanel(dataObj,to) {
-        var usr = `
-        <div class="user-info" style="opacity: 0; transform: scale(0.4); display: none;">
-            <div>
+        /**
+         * usr
+         * <div>
                 <i class="icon"></i>
                 <div class="background-image" style="background-image: url(/images/b.jpg);"></div>
                 <div class="background-mask"></div>
@@ -59,6 +57,11 @@ Components.prototype = {
                     <button>发起聊天</button>
                 </div>
             </div>
+         */
+
+        var usr = `
+        <div class="user-info" style="opacity: 0; transform: scale(0.4); display: none;">
+            
         </div>
         `;
 
@@ -346,6 +349,7 @@ Components.prototype = {
         var final = `
         <div class="chat-panel" chat-type="${to}">
             ${com}
+            ${emo}
         </div>
         `;
         if(to === 'all') {
@@ -356,7 +360,7 @@ Components.prototype = {
     }
 }
 
-var components = new Components();
+var components = new MyComponents();
 
 
 
@@ -398,6 +402,8 @@ UserInfo.prototype = {
         $win.on('click', '.avatar-image.user-icon', function () {
             var src = $(this).attr('src');
             var username = $(this).attr('data-username');
+            var f = $('.chat-panel').attr('chat-type');
+            if(username === c.username || f !== 'all') return;
             var commonHtml = `
             <div><i class="icon"></i>
                 <div class="background-image" style="background-image: url(/images/b.jpg);"></div>
@@ -418,12 +424,13 @@ UserInfo.prototype = {
                 <div><button class="singleChatBtn" data-to="${username}" data-avatar="${src}">发起聊天</button></div>
             </div>
             `;
+            $userInfoModel = $('.user-info');
             $userInfoModel.append(commonHtml);
-            $userInfoModel.css({
+            $userInfoModel.show().css({
                 opacity: 1,
                 transform: 'scale(1)',
-            })
-            .show();
+            });
+            
         });
     },
     close: function () {
@@ -440,35 +447,43 @@ UserInfo.prototype = {
         $win.on('click', '.singleChatBtn', function() {
             var username = $(this).attr('data-to');
             var avatar = $(this).attr('data-avatar');
-            var commonHtml = `
-            <div class="chat-panel" chat-type="${username}">
-                <div class="chat-panel-header">
-                    <div><img class="avatar-image" src="${avatar}"
-                            style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
-                        <p>${username}</p>
-                    </div>
-                </div>
-                <div class="message-list">
-                </div>
-                <div class="input-box">
-                    <input type="text" placeholder="输入消息" maxlength="1024">
-                </div>
-            </div>
-            `;
-            $body.append(commonHtml);
+            
+            var dataObj = {
+                com: {
+                    avatar: avatar,
+                    username: username
+                },
+                usr: {
+                    avatar: '',
+                    username: ''
+                },
+                float: {
+                    peoples: 2
+                }
+            };
+            // 删除聊天窗口
+            $('.chat-panel').remove();
+            console.log('重新渲染窗口')
+            // 重新渲染聊天窗口
+            $body.append(components.chatPanel(dataObj, username));
+
+
             $('.chat-panel').hide();
             $empty.hide();
             $('.chat-panel[chat-type='+ username +']').show();
         });
     }
 }
-// new UserInfo();
+new UserInfo();
 
 var socket = io();
 
 // 连接实例
 function Connect() {
     this.username = '';
+    this.noRead = {
+        all: 0,
+    };
 }
 
 Connect.prototype = {
@@ -486,16 +501,16 @@ Connect.prototype = {
     },
     // 渲染消息
     renderMsg(res) {
-        console.log(res);
+        console.log('渲染消息：', res);
         var $messages = $('.message-list');
         for(var i in res) {
-            var isMy = c.username == res[i].username ? true : false;
+            var isMy = c.username == res[i].from ? true : false;
             var commonHtml = `
-                    <img class="avatar-image user-icon" src="https://api.adorable.io/avatars/40/${res[i].username}" alt="" data-username="${res[i].username}">
+                    <img class="avatar-image user-icon" src="https://api.adorable.io/avatars/40/${res[i].from}" alt="" data-username="${res[i].from}">
                     <div>
                         <div>
-                            <span class="message-username">${res[i].username}</span>
-                            <span>${res[i].date}</span>
+                            <span class="message-username">${res[i].from}</span>
+                            <span>${(new Date(res[i].date).format('hh:mm:ss'))}</span>
                         </div>
                         <div class="text">
                             ${res[i].message}
@@ -521,8 +536,8 @@ Connect.prototype = {
             } else {
                 $messages.append(unMyHtml);
             }
-            $('.user-list-item .content div').eq(1).find('p').text(res[i].username + ':' + res[i].message);
-            $('.user-list-item .content div').eq(0).find('p').eq(1).text(res[i].date);
+            $('.user-list-item .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+            $('.user-list-item .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
             if($messages.length !== 0) {
                 $messages[0].scrollTop = $messages[0].scrollHeight;
             }
@@ -530,10 +545,6 @@ Connect.prototype = {
     },
     // 调取历史记录
     takeMsg(o) {
-        // var o = {
-        //     from: from,
-        //     take: take
-        // }
         socket.emit('take messages', o);
     }
 }
@@ -550,19 +561,20 @@ $win.on('keydown', '.input-box input', function (e) {
     if (keys === 13 && m !== '') {      // 消息不得为空。
         var to = $(this).parents('.chat-panel').attr('chat-type');
         var msg = {
-            username: c.username,
+            from: c.username,
             to: to,
             message: m,
-            date: (new Date()).format("hh:mm")
+            date: new Date().getTime()
         }
         c.sendMsg(msg);
         $(this).val('');                  // empty input
     }
 });
 
+
 // render message
 socket.on('message', function (res) {
-    console.log(res);
+    console.log('接受消息并打印, 准备送往渲染工厂：',res);
     c.renderMsg(res);
 });
 
@@ -658,14 +670,20 @@ App.prototype = {
         $('#logoutBtn').on('click',this.logout);
     },
     openAllChat() {
-        $allUser.on('click', function () {
+        $body.on('click', '.user-list-item', function () {
+            $('.chat-panel').remove();
+            var dataUserPanel = $(this).attr('data-user');
+            // 显示群聊
+            $('.chat-panel').hide();
+            $('.chat-panel[chat-type='+ dataUserPanel +']').show();
+
             var len = $('.chat-panel').length;
             if(len != 0) return;
             $empty.remove();
             var dataObj = {
                 com: {
                     avatar: 'https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40',
-                    username: '群聊'
+                    username: dataUserPanel === 'all' ? '群聊' : dataUserPanel
                 },
                 usr: {
                     avatar: '',
@@ -675,14 +693,14 @@ App.prototype = {
                     peoples: 0
                 }
             };
-            $body.append(components.chatPanel(dataObj,'all'));
+            $body.append(components.chatPanel(dataObj,dataUserPanel));
             c.takeMsg({
                 from: c.username,
-                take: 'all'
+                take: dataUserPanel
             });
             acceptMsg(function(data) {
                 if(data.length !== 0) {
-                    console.log(data);
+                    console.log('调取离线记录：',data);
                     c.renderMsg(data);
                 }
             });

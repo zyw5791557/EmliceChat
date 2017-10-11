@@ -19,3 +19,14 @@ var LoginStateSchema = new mongoose.Schema({
     remoteAddress: String,
 });
 mongoose.model('userLoginState', LoginStateSchema);
+
+
+// 消息记录集合
+
+var MessagesSchema = new mongoose.Schema({
+    from: String,
+    to: String,
+    message: String,
+    date: Number
+});
+mongoose.model('messages', MessagesSchema);
