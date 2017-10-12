@@ -484,6 +484,11 @@ UserInfo.prototype = {
                     to: username
                 }
                 $userList.append(components.userListItem(o));
+                // 添加临时会话成员
+                c.myUserListArr[username] = {
+                    noRead: 0
+                };
+                
             }
 
             var dataObj = {
@@ -505,7 +510,6 @@ UserInfo.prototype = {
             // 重新渲染聊天窗口
             $body.append(components.chatPanel(dataObj, username));
 
-
             $('.chat-panel').hide();
             $empty.hide();
             $('.chat-panel[chat-type=' + username + ']').show();
@@ -518,9 +522,11 @@ var socket = io();
 
 // 连接实例
 function Connect() {
-    this.username = '';
-    this.noRead = {
-        all: 0,
+    this.username = '';         // 我的连接账号即用户名
+    this.myUserListArr = {      // 我的临时会话集合
+        all: {
+            noRead: 0
+        },
     };
 }
 
@@ -541,10 +547,16 @@ Connect.prototype = {
     renderMsg(res) {
         console.log('渲染消息：', res);
         var $messages = $('.message-list');
-        for (var i in res) {
+        // 判断当前窗口是否是会话窗花
+        var p = $('.message-list').parents('.chat-panel').attr('chat-type');
+        for (var i = 0; i < res.length; i++) {
+            var p = $('.message-list').parents('.chat-panel').attr('chat-type');
+            if(res[i].to !== p && res[i].from !== p && p !== undefined) {
+                continue;
+            }
             var isMy = c.username == res[i].from ? true : false;
             var commonHtml = `
-                    <img class="avatar-image user-icon" src="https://api.adorable.io/avatars/40/${res[i].from}" alt="" data-username="${res[i].from}">
+                    <img class="avatar-image user-icon" src="https://api.adorable.io/avatars/60/${res[i].from}" alt="" data-username="${res[i].from}">
                     <div>
                         <div>
                             <span class="message-username">${res[i].from}</span>
@@ -575,11 +587,15 @@ Connect.prototype = {
                 $messages.append(unMyHtml);
             }
             if(parseInt(i)===res.length - 1) {
-                console.log(res[i]);
-                $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-                $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
-                $('.user-list-item[data-user='+ res[i].from +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-                $('.user-list-item[data-user='+ res[i].from +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                if(res[i].to === 'all') {
+                    $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+                    $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                }else {
+                    $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+                    $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                    $('.user-list-item[data-user='+ res[i].from +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+                    $('.user-list-item[data-user='+ res[i].from +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                }
                 if ($messages.length !== 0) {
                     $messages[0].scrollTop = $messages[0].scrollHeight;
                 }
@@ -631,12 +647,51 @@ socket.on('message', function (res) {
                 to: res[i].from
             }
             $userList.append(components.userListItem(o));
+            // 添加临时会话成员
+            c.myUserListArr[res[i].from] = {
+                noRead: 0
+            };
         }
     }
     
+    // 判断当前窗口是否为聊天渲染窗口, 若是调用渲染函数, 若不是, 直接跳走并 未读消息计数 ++ 
+    var e = $('.chat-panel').attr('chat-type');
+    if(e !== undefined) {           // 如果当前频道不为空频道
+        // 当前为私聊频道或群聊频道
+        if(res[0].to == 'all' && e !== 'all') {    // 如果是发送去群聊频道切当前不在群聊频道
+            c.myUserListArr.all.noRead++;
+        }else {                     // 私聊频道
+            if(res[0].to !== 'all' && e !== 'all' && res[0].from !== c.username && e !== res[0].from) {
+                console.log('捕获错误',c.myUserListArr[res[0].from]);
+                c.myUserListArr[res[0].from] === undefined ? c.myUserListArr[res[0].from] = { noRead: 1 } : c.myUserListArr[res[0].from].noRead++;
+            }
+        }
+    }else {
+        // 当前为空频道。
+        if(res[0].to == 'all' && e !== 'all') {    // 如果是发送去群聊频道切当前不在群聊频道
+            c.myUserListArr.all.noRead++;
+        }else {                     // 私聊频道
+            if(res[0].to !== 'all' && e !== 'all' && res[0].from !== c.username && e !== res[0].from) {
+                c.myUserListArr[res[0].from] === undefined ? c.myUserListArr[res[0].from] = { noRead: 1 } : c.myUserListArr[res[0].from].noRead++;
+            }
+        }
+    }
 
+
+    
+    console.log(c.myUserListArr);
+
+    // 渲染未读消息气泡
+    $('.user-list-item').each(function() {
+        var t = $(this).attr('data-user');
+        console.log(c.myUserListArr[t].noRead);
+        console.log(this);
+        $(this).find('.unread').text(c.myUserListArr[t].noRead);
+
+    });
 
     c.renderMsg(res);
+    
 });
 
 
@@ -658,7 +713,7 @@ function App() {
 
 App.prototype = {
     init() {
-        this.openAllChat();
+        this.openUserListItem();
         this.player();
         this.checkLogin();
         this.eventListeners();
@@ -732,8 +787,15 @@ App.prototype = {
         // 退出
         $('#logoutBtn').on('click', this.logout);
     },
-    openAllChat() {
+    openUserListItem() {
         $body.on('click', '.user-list-item', function () {
+
+            // 清除该用户下的未读消息
+            var u = $(this).attr('data-user');
+            c.myUserListArr[u].noRead = 0;
+            console.log(c.myUserListArr);
+            $(this).find('.unread').text(c.myUserListArr[u].noRead);
+
             var dataUserPanel = $(this).attr('data-user');
             var f = $('.chat-panel').attr('chat-type');
             if (dataUserPanel === f) return;

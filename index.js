@@ -76,7 +76,14 @@ io.on('connection', function(socket) {
                 users[res.from].emit('take messages', result);
             });
         }else {
-            Messages.find({to: {$in: [res.take,res.from]}}, function(err, result) {
+            var a = res.from;
+            var b = res.take;
+            Messages.find({
+                $or: [ 
+                    { from: a, to: b},
+                    { from: b, to: a},
+                 ]
+            }, function(err, result) {
                 // 谁调取聊天记录
                 console.log(res.from + '调取聊天记录');
                 users[res.from].emit('take messages', result);
