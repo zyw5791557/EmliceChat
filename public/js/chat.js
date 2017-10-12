@@ -3,18 +3,20 @@
  * c    连接实例
  * app  应用实例
  */
-var c,app;
+var c, app;
 
 
 // 连接命名
 var c,
-$doc = $(document),
-$win = $('#app .windows'),
-$empty = $('.empty-chat-panel[chat-type=empty]'),
-$all = $('.chat-panel[chat-type=all]'),
-$mask = $('.mask-layout'),
-$body = $('.body');
+    $doc = $(document),
+    $win = $('#app .windows'),
+    $mask = $('.mask-layout'),
+    $body = $('.body'),
+    $userList = $('.user-list'),
 
+
+    $empty = $('.empty-chat-panel[chat-type=empty]'),
+    $all = $('.chat-panel[chat-type=all]');
 $empty.show();
 $all.hide();
 
@@ -25,7 +27,7 @@ function MyComponents() {
 }
 
 MyComponents.prototype = {
-    chatPanel(dataObj,to) {
+    chatPanel(dataObj, to) {
         /**
          * usr
          * <div>
@@ -352,11 +354,29 @@ MyComponents.prototype = {
             ${emo}
         </div>
         `;
-        if(to === 'all') {
+        if (to === 'all') {
             return finalAll;
-        }else {
+        } else {
             return final;
         }
+    },
+    userListItem(obj) {
+        var oHtml = `
+        <div class="user-list-item" data-user="${obj.to}">
+            <img class="avatar-image" src="https://api.adorable.io/avatars/40/${obj.to}" alt="">
+            <div class="unread">0</div>
+            <div class="content">
+                <div>
+                    <p>${obj.to}</p>
+                    <p></p>
+                </div>
+                <div>
+                    <p></p>
+                </div>
+            </div>
+        </div>
+        `;
+        return oHtml;
     }
 }
 
@@ -403,12 +423,12 @@ UserInfo.prototype = {
         var _this = this;
         $win.on('click', '.avatar-image.user-icon', function () {
             var uif = _this.userInfoFlag;
-            if(uif === false) return;
+            if (uif === false) return;
             _this.userInfoFlag = false;
             var src = $(this).attr('src');
             var username = $(this).attr('data-username');
             var f = $('.chat-panel').attr('chat-type');
-            if(username === c.username || f !== 'all') return;
+            if (username === c.username || f !== 'all') return;
             var commonHtml = `
             <div><i class="icon"></i>
                 <div class="background-image" style="background-image: url(/images/b.jpg);"></div>
@@ -445,17 +465,27 @@ UserInfo.prototype = {
                 opacity: 0,
                 transform: 'scale(0.4)',
             })
-            .hide();
+                .hide();
             $userInfoModel.empty();
         });
     },
-    openChat:function() {
+    // 新建聊天窗口
+    openChat: function () {
         var _this = this;
-        $win.on('click', '.singleChatBtn', function() {
+        $win.on('click', '.singleChatBtn', function () {
             _this.userInfoFlag = true;
             var username = $(this).attr('data-to');
             var avatar = $(this).attr('data-avatar');
-            
+
+            // 查询 $userList 里面是否有该用户面板 没有就新建, 有就跳过。
+            var f = $userList.find('.user-list-item[data-user=' + username + ']');
+            if (f.length === 0) {
+                let o = {
+                    to: username
+                }
+                $userList.append(components.userListItem(o));
+            }
+
             var dataObj = {
                 com: {
                     avatar: avatar,
@@ -478,7 +508,7 @@ UserInfo.prototype = {
 
             $('.chat-panel').hide();
             $empty.hide();
-            $('.chat-panel[chat-type='+ username +']').show();
+            $('.chat-panel[chat-type=' + username + ']').show();
         });
     }
 }
@@ -511,7 +541,7 @@ Connect.prototype = {
     renderMsg(res) {
         console.log('渲染消息：', res);
         var $messages = $('.message-list');
-        for(var i in res) {
+        for (var i in res) {
             var isMy = c.username == res[i].from ? true : false;
             var commonHtml = `
                     <img class="avatar-image user-icon" src="https://api.adorable.io/avatars/40/${res[i].from}" alt="" data-username="${res[i].from}">
@@ -544,11 +574,17 @@ Connect.prototype = {
             } else {
                 $messages.append(unMyHtml);
             }
-            $('.user-list-item .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-            $('.user-list-item .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
-            if($messages.length !== 0) {
-                $messages[0].scrollTop = $messages[0].scrollHeight;
+            if(parseInt(i)===res.length - 1) {
+                console.log(res[i]);
+                $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+                $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                $('.user-list-item[data-user='+ res[i].from +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+                $('.user-list-item[data-user='+ res[i].from +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                if ($messages.length !== 0) {
+                    $messages[0].scrollTop = $messages[0].scrollHeight;
+                }
             }
+            
         }
     },
     // 调取历史记录
@@ -582,15 +618,33 @@ $win.on('keydown', '.input-box input', function (e) {
 
 // render message
 socket.on('message', function (res) {
-    console.log('接受消息并打印, 准备送往渲染工厂：',res);
+    console.log('接受消息并打印, 准备送往渲染工厂：', res);
+
+    /**
+     *  from 来自谁的消息
+     */
+    
+    for(let i = 0; i < res.length; i++) {
+        var f = $userList.find('.user-list-item[data-user=' + res[i].from + ']');
+        if (f.length === 0 && res[i].from !== c.username && res[i].to !== 'all') {
+            let o = {
+                to: res[i].from
+            }
+            $userList.append(components.userListItem(o));
+        }
+    }
+    
+
+
     c.renderMsg(res);
 });
 
 
 // 接受历史记录
-socket.on('take messages', function(data) {
-    if(data.length !== 0) {
-        console.log('调取离线记录：',data);
+socket.on('take messages', function (data) {
+    console.log(data);
+    if (data.length !== 0) {
+        console.log('调取离线记录：', data);
         c.renderMsg(data);
     }
 });
@@ -611,9 +665,9 @@ App.prototype = {
     },
     checkLogin() {      // 登录状态监测
         var userName = localStorage.getItem('UserName');
-        if(userName === null || userName === undefined) {
+        if (userName === null || userName === undefined) {
             location.href = '/login';
-        }else {
+        } else {
             // 初始化连接
             c = new Connect();
             c.username = userName;
@@ -625,39 +679,39 @@ App.prototype = {
         location.href = '/login';
     },
     eventListeners() {      // 应用程序事件
-        $('.nav-list .nav-list-item').on('click', function(e) {
+        $('.nav-list .nav-list-item').on('click', function (e) {
             var e = e || window.event;
             // 阻止事件冒泡
             e.stopPropagation();
             $(this).addClass('selected').siblings().removeClass('selected');
             var t = $(this).attr('title');
-            if(t === '联系人') {
+            if (t === '联系人') {
                 layer.msg('暂未开放');
             }
-            if(t === '系统设置') {
+            if (t === '系统设置') {
                 // 系统设置开启
                 $('.system-setting')
-                .css({
-                    opacity: 1,
-                    transform: 'scale(1)'
-                });
+                    .css({
+                        opacity: 1,
+                        transform: 'scale(1)'
+                    });
                 $mask.show();
             }
         });
         // 关闭系统设置
-        $('.system-setting').find('span:contains("系统设置")').siblings('i').on('click',function() {
+        $('.system-setting').find('span:contains("系统设置")').siblings('i').on('click', function () {
             $('.system-setting')
-            .css({
-                opacity: 0,
-                transform: 'scale(0)'
-            })
+                .css({
+                    opacity: 0,
+                    transform: 'scale(0)'
+                })
             $mask.hide();
         });
-        $('.system-setting').on('click', function(e) {
+        $('.system-setting').on('click', function (e) {
             var e = e || window.event;
             e.stopPropagation();
         });
-        $(document).on('click', function(e) {
+        $(document).on('click', function (e) {
             // 系统设置关闭
             $('.system-setting').css({
                 opacity: 0,
@@ -666,23 +720,23 @@ App.prototype = {
             $mask.hide();
         });
         // switch 开关
-        $('.system-setting .switchBtn').on('click', function(e) {
+        $('.system-setting .switchBtn').on('click', function (e) {
             var f = $(this).hasClass('off');
-            if(f) {
+            if (f) {
                 $(this).removeClass('off').addClass('on');
-            }else {
+            } else {
                 $(this).removeClass('on').addClass('off');
             }
         });
 
         // 退出
-        $('#logoutBtn').on('click',this.logout);
+        $('#logoutBtn').on('click', this.logout);
     },
     openAllChat() {
         $body.on('click', '.user-list-item', function () {
             var dataUserPanel = $(this).attr('data-user');
             var f = $('.chat-panel').attr('chat-type');
-            if(dataUserPanel === f) return;
+            if (dataUserPanel === f) return;
             $('.chat-panel').remove();
             // 如果 $empty 存在就删掉它
             $empty && $empty.remove();
@@ -699,7 +753,7 @@ App.prototype = {
                     peoples: 0
                 }
             };
-            $body.append(components.chatPanel(dataObj,dataUserPanel));
+            $body.append(components.chatPanel(dataObj, dataUserPanel));
             c.takeMsg({
                 from: c.username,
                 take: dataUserPanel

@@ -69,12 +69,19 @@ io.on('connection', function(socket) {
     // 监听调取messages
     socket.on('take messages', function(res) {
         // 调取数据库消息
-        Messages.find({to: res.take}, function(err, result) {
-            // 谁调取聊天记录
-            console.log(res.from + '调取聊天记录');
-            users[res.from].emit('take messages', result);
-        });
-
+        if(res.take === 'all') {
+            Messages.find({to: res.take}, function(err, result) {
+                // 谁调取聊天记录
+                console.log(res.from + '调取聊天记录');
+                users[res.from].emit('take messages', result);
+            });
+        }else {
+            Messages.find({to: {$in: [res.take,res.from]}}, function(err, result) {
+                // 谁调取聊天记录
+                console.log(res.from + '调取聊天记录');
+                users[res.from].emit('take messages', result);
+            });
+        }
         
     });
 
