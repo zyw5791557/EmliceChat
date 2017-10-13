@@ -50,8 +50,16 @@
         var api = '/api/register';
 
         $('#registerBtn').on('click', function () {
-            var name = $('#name').val();
-            var pwd = $('#pwd').val();
+            var name = $('#name').val().trim();
+            var pwd = $('#pwd').val().trim();
+            if(name === ''|| name === undefined) {
+                layer.msg('账号不能为空!',{offset: '30px', icon:7});  
+                return;
+            }
+            if(pwd === ''|| pwd === undefined) {
+                layer.msg('密码不能为空!',{offset: '30px', icon:7});  
+                return;
+            }
             axios({
                 method: 'post',
                 url: api,
@@ -70,11 +78,11 @@
                     }, 1000);
                 } else if (c === 1) {
                     // 账号已存在, 请重新输入一个账号
-                    layer.msg('账号已存在, 请重新输入一个账号。');
+                    layer.msg('账号已存在, 请重新输入一个账号。',{offset: '30px', icon:7});  
                 }
                 console.log(layer);
             }).catch(err => {
-                alert('登录失败, 请检查网络连接是否正常。');
+                layer.msg('登录失败, 请检查网络连接是否正常。',{offset: '30px', icon:7}); 
             });
         });
 

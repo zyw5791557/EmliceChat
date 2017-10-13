@@ -70,9 +70,14 @@ io.on('connection', function(socket) {
     socket.on('take messages', function(res) {
         // 调取数据库消息
         if(res.take === 'all') {
-            Messages.find({to: res.take}, function(err, result) {
+            Messages.find({to: res.take}).
+            skip(0*20).
+            limit(20).
+            sort('-_id').
+            exec(function(err, result) {
                 // 谁调取聊天记录
                 console.log(res.from + '调取聊天记录');
+                result.reverse();
                 users[res.from].emit('take messages', result);
             });
         }else {
@@ -82,10 +87,15 @@ io.on('connection', function(socket) {
                 $or: [ 
                     { from: a, to: b},
                     { from: b, to: a},
-                 ]
-            }, function(err, result) {
+                 ],
+            }).
+            skip(0*20).
+            limit(20).
+            sort('-_id').
+            exec(function(err,result) {
                 // 谁调取聊天记录
                 console.log(res.from + '调取聊天记录');
+                result.reverse();
                 users[res.from].emit('take messages', result);
             });
         }

@@ -383,7 +383,7 @@ MyComponents.prototype = {
 var components = new MyComponents();
 
 
-
+// 公共方法 
 
 // Date format
 Date.prototype.format = function (fmt) {
@@ -408,6 +408,24 @@ Date.prototype.format = function (fmt) {
     return fmt;
 }
 
+
+
+// 向上滚动加载
+// function scrollAjax() {
+//     var $this = $('.message-list');
+//     var dataUserPanel = $('.chat-panel').attr('chat-type');
+//     if ($this.scrollTop() <= 0) {
+//         c.takeMsg({
+//             from: c.username,
+//             take: dataUserPanel,
+//             addPage: 1
+//         });
+//     }
+// }
+
+
+
+
 // user info 实例
 function UserInfo() {
     this.init();
@@ -418,6 +436,7 @@ UserInfo.prototype = {
         this.openAvatarInfo();
         this.close();
         this.openChat();
+        this.openUserSetting();
     },
     openAvatarInfo: function () {
         var _this = this;
@@ -488,7 +507,7 @@ UserInfo.prototype = {
                 c.myUserListArr[username] = {
                     noRead: 0
                 };
-                
+
             }
 
             var dataObj = {
@@ -510,9 +529,45 @@ UserInfo.prototype = {
             // 重新渲染聊天窗口
             $body.append(components.chatPanel(dataObj, username));
 
+            // 拉去记录
+            c.takeMsg({
+                from: c.username,
+                take: username,
+            });
+
             $('.chat-panel').hide();
             $empty.hide();
             $('.chat-panel[chat-type=' + username + ']').show();
+        });
+    },
+    openUserSetting: function() {
+        $('.avatar-text[title=查看个人信息]').on('click', function(e) {
+            var e = e || window.event;
+            // 阻止事件冒泡
+            e.stopPropagation();
+            $('.user-setting').css({
+                opacity: 1,
+                transform: 'scale(1)'
+            });
+            $mask.show();
+        });
+        $('.user-setting').on('click', function (e) {
+            var e = e || window.event;
+            e.stopPropagation();
+        });
+        $('.user-setting div:eq(0) i').on('click', function() {
+            $('.user-setting').css({
+                opacity: 0,
+                transform: 'scale(0.4)'
+            });
+            $mask.hide();
+        });
+        $('.user-setting .avatar-image').on('mouseenter', function() {
+            var oHtml = '<div class="avatar-mask icon"></div>';
+            $(this).parent().append(oHtml);
+        });
+        $('.user-setting .avatar-image').on('mouseleave', function() {
+            $(this).siblings('.avatar-mask').remove();
         });
     }
 }
@@ -550,9 +605,29 @@ Connect.prototype = {
         // 判断当前窗口是否是会话窗花
         var p = $('.message-list').parents('.chat-panel').attr('chat-type');
         for (var i = 0; i < res.length; i++) {
+
+            if (parseInt(i) === res.length - 1) {
+                // 渲染时间和消息
+                if (res[i].to === 'all') {
+                    console.log('提示群聊消息咯');
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                } else {
+                    console.log('提示私聊消息咯');
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                    $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
+                    $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                }
+            }
+
             var p = $('.message-list').parents('.chat-panel').attr('chat-type');
-            if(res[i].to !== p && res[i].from !== p && p !== undefined) {
-                continue;
+            if (p !== undefined) {
+                if (p !== 'all' && res[i].to === 'all') {
+                    continue;
+                } else if (p == 'all' && res[i].to !== 'all') {
+                    continue;
+                }
             }
             var isMy = c.username == res[i].from ? true : false;
             var commonHtml = `
@@ -586,21 +661,10 @@ Connect.prototype = {
             } else {
                 $messages.append(unMyHtml);
             }
-            if(parseInt(i)===res.length - 1) {
-                if(res[i].to === 'all') {
-                    $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-                    $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
-                }else {
-                    $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-                    $('.user-list-item[data-user='+ res[i].to +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
-                    $('.user-list-item[data-user='+ res[i].from +'] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-                    $('.user-list-item[data-user='+ res[i].from +'] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
-                }
-                if ($messages.length !== 0) {
-                    $messages[0].scrollTop = $messages[0].scrollHeight;
-                }
+            if ($messages.length !== 0) {
+                $messages[0].scrollTop = $messages[0].scrollHeight;
             }
-            
+
         }
     },
     // 调取历史记录
@@ -639,8 +703,8 @@ socket.on('message', function (res) {
     /**
      *  from 来自谁的消息
      */
-    
-    for(let i = 0; i < res.length; i++) {
+
+    for (let i = 0; i < res.length; i++) {
         var f = $userList.find('.user-list-item[data-user=' + res[i].from + ']');
         if (f.length === 0 && res[i].from !== c.username && res[i].to !== 'all') {
             let o = {
@@ -653,36 +717,36 @@ socket.on('message', function (res) {
             };
         }
     }
-    
+
     // 判断当前窗口是否为聊天渲染窗口, 若是调用渲染函数, 若不是, 直接跳走并 未读消息计数 ++ 
     var e = $('.chat-panel').attr('chat-type');
-    if(e !== undefined) {           // 如果当前频道不为空频道
+    if (e !== undefined) {           // 如果当前频道不为空频道
         // 当前为私聊频道或群聊频道
-        if(res[0].to == 'all' && e !== 'all') {    // 如果是发送去群聊频道切当前不在群聊频道
+        if (res[0].to == 'all' && e !== 'all') {    // 如果是发送去群聊频道切当前不在群聊频道
             c.myUserListArr.all.noRead++;
-        }else {                     // 私聊频道
-            if(res[0].to !== 'all' && e !== 'all' && res[0].from !== c.username && e !== res[0].from) {
-                console.log('捕获错误',c.myUserListArr[res[0].from]);
+        } else {                     // 私聊频道
+            if (res[0].to !== 'all' && res[0].from !== c.username && e !== res[0].from) {
+                console.log('捕获错误', c.myUserListArr[res[0].from]);
                 c.myUserListArr[res[0].from] === undefined ? c.myUserListArr[res[0].from] = { noRead: 1 } : c.myUserListArr[res[0].from].noRead++;
             }
         }
-    }else {
+    } else {
         // 当前为空频道。
-        if(res[0].to == 'all' && e !== 'all') {    // 如果是发送去群聊频道切当前不在群聊频道
+        if (res[0].to == 'all' && e !== 'all') {    // 如果是发送去群聊频道切当前不在群聊频道
             c.myUserListArr.all.noRead++;
-        }else {                     // 私聊频道
-            if(res[0].to !== 'all' && e !== 'all' && res[0].from !== c.username && e !== res[0].from) {
+        } else {                     // 私聊频道
+            if (res[0].to !== 'all' && res[0].from !== c.username && e !== res[0].from) {
                 c.myUserListArr[res[0].from] === undefined ? c.myUserListArr[res[0].from] = { noRead: 1 } : c.myUserListArr[res[0].from].noRead++;
             }
         }
     }
 
 
-    
+
     console.log(c.myUserListArr);
 
     // 渲染未读消息气泡
-    $('.user-list-item').each(function() {
+    $('.user-list-item').each(function () {
         var t = $(this).attr('data-user');
         console.log(c.myUserListArr[t].noRead);
         console.log(this);
@@ -691,13 +755,12 @@ socket.on('message', function (res) {
     });
 
     c.renderMsg(res);
-    
+
 });
 
 
 // 接受历史记录
 socket.on('take messages', function (data) {
-    console.log(data);
     if (data.length !== 0) {
         console.log('调取离线记录：', data);
         c.renderMsg(data);
@@ -772,6 +835,11 @@ App.prototype = {
                 opacity: 0,
                 transform: 'scale(0)'
             });
+            // 用户设置关闭
+            $('.user-setting').css({
+                opacity: 0,
+                transform: 'scale(0.4)'
+            });
             $mask.hide();
         });
         // switch 开关
@@ -804,7 +872,7 @@ App.prototype = {
             $empty && $empty.remove();
             var dataObj = {
                 com: {
-                    avatar: 'https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40',
+                    avatar: dataUserPanel === 'all' ? 'https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40' : 'https://api.adorable.io/avatars/40/' + dataUserPanel,
                     username: dataUserPanel === 'all' ? '群聊' : dataUserPanel
                 },
                 usr: {
@@ -818,7 +886,7 @@ App.prototype = {
             $body.append(components.chatPanel(dataObj, dataUserPanel));
             c.takeMsg({
                 from: c.username,
-                take: dataUserPanel
+                take: dataUserPanel,
             });
         });
     },
@@ -834,3 +902,16 @@ App.prototype = {
 }
 
 app = new App();
+
+// 测试
+Notification.requestPermission(function (permission) {  
+    if (permission == "granted") {
+        var notification = new Notification("您有一条新的消息",{  
+            dir: "auto",  
+            lang: "zh-CN",  
+            tag: "testNotice",  
+            icon:'ant.png',  
+            body: '你好啊！我是蚂蚁，我在测试桌面推送' 
+                    });   
+    }
+})

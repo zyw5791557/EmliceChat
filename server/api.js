@@ -24,9 +24,10 @@ const api = '/api';
 
 app.post( api + '/login',function(req,res) {
     var date = new Date().getTime();                        // 时间戳
-    console.log(date);
-    var remoteLoginIp = req.connection.remoteAddress;       // 远程登录 IP
-    if(remoteLoginIp === '::1' || remoteLoginIp === 'localhost') remoteLoginIp = '127.0.0.1';
+    var ip = req.headers['x-forwarded-for'] || 
+    req.connection.remoteAddress || 
+    req.socket.remoteAddress ||
+    req.connection.socket.remoteAddress;
     var str = '';
     req.on("data", function(chunk) {
         str += chunk;
@@ -45,7 +46,7 @@ app.post( api + '/login',function(req,res) {
                 var record = {
                     user: parseStr.name,
                     date: date,
-                    remoteAddress: remoteLoginIp
+                    remoteAddress: ip
                 };
                 // 保存用户登录记录
                 var loginState = new LoginState(record);
@@ -64,8 +65,10 @@ app.post( api + '/login',function(req,res) {
 // 配置注册视图
 app.post( api + '/register', function(req, res) {
     var date = new Date().getTime();                        // 时间戳
-    var remoteLoginIp = req.connection.remoteAddress;       // 远程登录 IP
-    if(remoteLoginIp === '::1' || remoteLoginIp === 'localhost') remoteLoginIp = '127.0.0.1';
+    var ip = req.headers['x-forwarded-for'] || 
+    req.connection.remoteAddress || 
+    req.socket.remoteAddress ||
+    req.connection.socket.remoteAddress;
     var str = '';
     req.on("data", function(chunk) {
         str += chunk;
@@ -82,7 +85,7 @@ app.post( api + '/register', function(req, res) {
                 var record = {
                     user: parseStr.name,
                     date: date,
-                    remoteAddress: remoteLoginIp
+                    remoteAddress: ip
                 };
                 // 保存用户登录记录
                 var loginState = new LoginState(record);
