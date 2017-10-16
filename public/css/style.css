@@ -2070,3 +2070,10 @@ header {
 .input-form>:nth-child(1000n+2)>button:hover {
     background-color: #29b6f6
 }
+
+
+
+.avatar-image {
+    width: 40px!important;
+    height: 40px!important;
+}

@@ -317,9 +317,9 @@ MyComponents.prototype = {
 
         var notic = `
         <div>
-            <div>
+            <div style="margin: auto 8px;">
                 <i class="icon" title="公告"></i></div>
-            <div>
+            <div style="margin: auto 8px;">
                 <i class="icon" title="关于"></i></div>
         </div>
         `;
@@ -540,8 +540,8 @@ UserInfo.prototype = {
             $('.chat-panel[chat-type=' + username + ']').show();
         });
     },
-    openUserSetting: function() {
-        $('.avatar-text[title=查看个人信息]').on('click', function(e) {
+    openUserSetting: function () {
+        $('.avatar-text[title=查看个人信息]').on('click', function (e) {
             var e = e || window.event;
             // 阻止事件冒泡
             e.stopPropagation();
@@ -555,18 +555,18 @@ UserInfo.prototype = {
             var e = e || window.event;
             e.stopPropagation();
         });
-        $('.user-setting div:eq(0) i').on('click', function() {
+        $('.user-setting div:eq(0) i').on('click', function () {
             $('.user-setting').css({
                 opacity: 0,
                 transform: 'scale(0.4)'
             });
             $mask.hide();
         });
-        $('.user-setting .avatar-image').on('mouseenter', function() {
+        $('.user-setting .avatar-image').on('mouseenter', function () {
             var oHtml = '<div class="avatar-mask icon"></div>';
             $(this).parent().append(oHtml);
         });
-        $('.user-setting .avatar-image').on('mouseleave', function() {
+        $('.user-setting .avatar-image').on('mouseleave', function () {
             $(this).siblings('.avatar-mask').remove();
         });
     }
@@ -754,6 +754,29 @@ socket.on('message', function (res) {
 
     });
 
+    if (res[0].from !== c.username) {
+        // 消息声音提醒
+        var ado = new Audio('/audio/momo.mp3');
+        ado.play();
+        // 桌面消息提醒
+        Notification.requestPermission(function (permission) {
+            if (permission == "granted") {
+                var notification = new Notification((res[0].to === 'all' ? "群聊窗口" : res[0].from) + "- 发来消息", {
+                    dir: "auto",
+                    lang: "zh-CN",
+                    tag: "testNotice",
+                    icon: '/images/sleep.gif',
+                    body: `${res[0].from}：${res[0].message}`,
+                    renotify: true,     // 是否替换之前的通知
+                });
+                notification.onclick = function () {
+                    window.focus();
+                    notification.close();
+                }
+            }
+        });
+    }
+
     c.renderMsg(res);
 
 });
@@ -872,7 +895,7 @@ App.prototype = {
             $empty && $empty.remove();
             var dataObj = {
                 com: {
-                    avatar: dataUserPanel === 'all' ? 'https://assets.suisuijiang.com/group_avatar_default.jpeg?imageView2/2/w/40/h/40' : 'https://api.adorable.io/avatars/40/' + dataUserPanel,
+                    avatar: dataUserPanel === 'all' ? '/images/sleep.gif' : 'https://api.adorable.io/avatars/40/' + dataUserPanel,
                     username: dataUserPanel === 'all' ? '群聊' : dataUserPanel
                 },
                 usr: {
@@ -903,15 +926,4 @@ App.prototype = {
 
 app = new App();
 
-// 测试
-Notification.requestPermission(function (permission) {  
-    if (permission == "granted") {
-        var notification = new Notification("您有一条新的消息",{  
-            dir: "auto",  
-            lang: "zh-CN",  
-            tag: "testNotice",  
-            icon:'ant.png',  
-            body: '你好啊！我是蚂蚁，我在测试桌面推送' 
-                    });   
-    }
-})
+
