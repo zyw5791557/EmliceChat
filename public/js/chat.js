@@ -5,6 +5,9 @@
  */
 var c, app;
 
+// 静态资源服务器 API
+const BASE_URL   = 'http://localhost:8989';
+const UPLOAD_API = BASE_URL + '/api/avatar_upload';
 
 // 连接命名
 var c,
@@ -755,26 +758,38 @@ socket.on('message', function (res) {
     });
 
     if (res[0].from !== c.username) {
-        // 消息声音提醒
-        var ado = new Audio('/audio/momo.mp3');
-        ado.play();
-        // 桌面消息提醒
-        Notification.requestPermission(function (permission) {
-            if (permission == "granted") {
-                var notification = new Notification((res[0].to === 'all' ? "群聊窗口" : res[0].from) + "- 发来消息", {
-                    dir: "auto",
-                    lang: "zh-CN",
-                    tag: "testNotice",
-                    icon: '/images/sleep.gif',
-                    body: `${res[0].from}：${res[0].message}`,
-                    renotify: true,     // 是否替换之前的通知
-                });
-                notification.onclick = function () {
-                    window.focus();
-                    notification.close();
+        var d = JSON.parse(localStorage.getItem('desktopNotification'));
+        var s = JSON.parse(localStorage.getItem('soundNotification'));
+        if (s) {
+            // 消息声音提醒
+            var ado = new Audio('/audio/momo.mp3');
+            ado.play();
+        }
+        if (d) {
+            // 桌面消息提醒
+            Notification.requestPermission(function (permission) {
+                if (permission == "granted") {
+                    var notification = new Notification((res[0].to === 'all' ? "群聊窗口" : res[0].from) + "- 发来消息", {
+                        dir: "auto",
+                        lang: "zh-CN",
+                        // tag: "testNotice",
+                        icon: '/images/sleep.gif',
+                        body: `${res[0].from}：${res[0].message}`,
+                        // renotify: true,     // 是否替换之前的通知
+                    });
+                    notification.onclick = function () {
+                        window.focus();
+                        notification.close();
+                    };
+                    notification.onshow = function() { 
+                        //3秒后自动关闭消息框    
+                        setTimeout(function() {  
+                            notification.close();  
+                        }, 3000);  
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     c.renderMsg(res);
@@ -803,6 +818,8 @@ App.prototype = {
         this.player();
         this.checkLogin();
         this.eventListeners();
+        this.checkSetting();
+        this.avatarSetting();
     },
     checkLogin() {      // 登录状态监测
         var userName = localStorage.getItem('UserName');
@@ -818,6 +835,66 @@ App.prototype = {
     logout() {          // 退出登录
         localStorage.removeItem('UserName');
         location.href = '/login';
+    },
+    checkSetting() {        // 检查用户设置 初始化
+        var d = JSON.parse(localStorage.getItem('desktopNotification'));
+        var s = JSON.parse(localStorage.getItem('soundNotification'));
+        if(d === null) {
+            localStorage.setItem('desktopNotification', true);
+        } else {
+            if(d) {
+                $('.system-setting .switch:eq(0) .switchBtn').removeClass('off').addClass('on');
+            } else {
+                $('.system-setting .switch:eq(0) .switchBtn').removeClass('on').addClass('off');
+            }
+        }
+        if(s === null) {
+            localStorage.setItem('soundNotification', true);
+        } else {
+            if(s) {
+                $('.system-setting .switch:eq(1) .switchBtn').removeClass('off').addClass('on');
+            } else {
+                $('.system-setting .switch:eq(1) .switchBtn').removeClass('on').addClass('off');
+            }
+        }
+    },
+    avatarSetting() {       // 头像设置
+        $('.user-setting .avatar-image').on('click', function() {       // 点击头像触发 图片上传器
+            $(this).siblings('input[type=file]')[0].click();
+        });
+        $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function() {
+            var t = $(this)[0].files[0];
+            var formData = new FormData();
+            formData.append("avatar",t);
+            // axios({
+            //     url: UPLOAD_API,
+            //     method: 'POST',
+            //     data: formData,
+            //     headers: {
+            //         'Content-Type':'multipart/form-data'
+            //     }
+            // }).then(res => {
+            //     console.log(res);
+            // });
+            console.log(t);
+            $.ajax({
+                type: 'POST',
+                url: UPLOAD_API,
+                data: formData,
+                dataType: 'JSON',
+                cache: false,
+                xhrFields: {
+                    // withCredentials: true
+                }, 
+                processData: false,
+                contentType: false,
+                crossDomain: true,
+                success: function(res) {
+                    console.log(res);
+                }
+            })
+            console.log(t)
+        });
     },
     eventListeners() {      // 应用程序事件
         $('.nav-list .nav-list-item').on('click', function (e) {
@@ -867,11 +944,15 @@ App.prototype = {
         });
         // switch 开关
         $('.system-setting .switchBtn').on('click', function (e) {
+            var t = $(this).siblings('span').text();
+            console.log(t);
             var f = $(this).hasClass('off');
             if (f) {
                 $(this).removeClass('off').addClass('on');
+                t === '启用桌面通知' ? localStorage.setItem('desktopNotification', true) : localStorage.setItem('soundNotification', true);
             } else {
                 $(this).removeClass('on').addClass('off');
+                t === '启用桌面通知' ? localStorage.setItem('desktopNotification', false) : localStorage.setItem('soundNotification', false);
             }
         });
 
