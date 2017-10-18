@@ -862,38 +862,40 @@ App.prototype = {
         $('.user-setting .avatar-image').on('click', function() {       // 点击头像触发 图片上传器
             $(this).siblings('input[type=file]')[0].click();
         });
-        $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function() {
+        $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function(e) {
             var t = $(this)[0].files[0];
-            var formData = new FormData();
-            formData.append("avatar",t);
+            var param = new FormData();
+            param.append("file", t ,t.name);
+            console.log(param.get('file'));
             // axios({
             //     url: UPLOAD_API,
             //     method: 'POST',
-            //     data: formData,
+            //     data: formDataInit(param),
             //     headers: {
-            //         'Content-Type':'multipart/form-data'
+            //         'Content-Type':'application/x-www-form-urlencoded'
             //     }
             // }).then(res => {
             //     console.log(res);
             // });
-            console.log(t);
+
             $.ajax({
-                type: 'POST',
                 url: UPLOAD_API,
-                data: formData,
-                dataType: 'JSON',
+                data: param,
+                type:'post',
                 cache: false,
-                xhrFields: {
-                    // withCredentials: true
-                }, 
-                processData: false,
-                contentType: false,
-                crossDomain: true,
-                success: function(res) {
-                    console.log(res);
+                contentType: false, //不可缺参数
+                processData: false, //不可缺参数
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+                },
+                success: function(data) {
+                    console.log(data);
+                },
+                error: function() {
+                    console.log('error');
                 }
-            })
-            console.log(t)
+            });
+
         });
     },
     eventListeners() {      // 应用程序事件
