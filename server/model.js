@@ -6,6 +6,7 @@ var mongoose = require('mongoose');
 var UserSchema = new mongoose.Schema({  // 定义数据模型
     name: String,
     pwd: String,
+    avatar: String,
     date: Number
 });
 mongoose.model('users', UserSchema);       // 将该 Schema 发布为 Model, 第一个参数为数据库的集合, 没有会自动创建
@@ -25,6 +26,7 @@ mongoose.model('userLoginState', LoginStateSchema);
 
 var MessagesSchema = new mongoose.Schema({
     from: String,
+    avatar: String,
     to: String,
     message: String,
     date: Number

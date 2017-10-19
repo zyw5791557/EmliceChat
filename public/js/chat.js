@@ -31,38 +31,6 @@ function MyComponents() {
 
 MyComponents.prototype = {
     chatPanel(dataObj, to) {
-        /**
-         * usr
-         * <div>
-                <i class="icon"></i>
-                <div class="background-image" style="background-image: url(/images/b.jpg);"></div>
-                <div class="background-mask"></div>
-                <div class="content">
-                    <img class="avatar-image" src="${dataObj.usr.avatar}" style="width: 80px; height: 80px; min-width: 80px; min-height: 80px;">
-                    <span>${dataObj.usr.username}</span>
-                    <div class="icon-list"></div>
-                </div>
-            </div>
-            <div class="normal-status">
-                <div>
-                    <div>
-                        <div>
-                            <span>性别:</span>
-                            <span>年龄:</span>
-                            <span>时长:</span>
-                            <span>位置:</span></div>
-                        <div>
-                            <span>未知</span>
-                            <span>未知</span>
-                            <span>未知</span>
-                            <span>地球</span></div>
-                    </div>
-                </div>
-                <div>
-                    <button>发起聊天</button>
-                </div>
-            </div>
-         */
 
         var usr = `
         <div class="user-info" style="opacity: 0; transform: scale(0.4); display: none;">
@@ -581,6 +549,7 @@ var socket = io();
 // 连接实例
 function Connect() {
     this.username = '';         // 我的连接账号即用户名
+    this.userAvatar = '';       // 用户头像
     this.myUserListArr = {      // 我的临时会话集合
         all: {
             noRead: 0
@@ -593,7 +562,7 @@ Connect.prototype = {
     usernameEmit(username) {
         var username = this.username;
         socket.emit('user join', username);
-        $('.user-panel .avatar-text').css('background', 'url(https://api.adorable.io/avatars/60/' + username + ')')
+        $('.user-panel .avatar-text').css('background-image', 'url(' + this.userAvatar + ')')
         $win.show();
         $('.input-box input').focus();
     },
@@ -634,7 +603,7 @@ Connect.prototype = {
             }
             var isMy = c.username == res[i].from ? true : false;
             var commonHtml = `
-                    <img class="avatar-image user-icon" src="https://api.adorable.io/avatars/60/${res[i].from}" alt="" data-username="${res[i].from}">
+                    <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}">
                     <div>
                         <div>
                             <span class="message-username">${res[i].from}</span>
@@ -680,7 +649,7 @@ Connect.prototype = {
 
 
 
-// messages
+// messages   回车发送消息
 
 $win.on('keydown', '.input-box input', function (e) {
     var keys = parseInt(e.keyCode);
@@ -689,6 +658,7 @@ $win.on('keydown', '.input-box input', function (e) {
         var to = $(this).parents('.chat-panel').attr('chat-type');
         var msg = {
             from: c.username,
+            avatar: c.userAvatar,
             to: to,
             message: m,
             date: new Date().getTime()
@@ -814,21 +784,28 @@ function App() {
 
 App.prototype = {
     init() {
+        this.checkLogin();
+        this.initDOM();
         this.openUserListItem();
         this.player();
-        this.checkLogin();
         this.eventListeners();
         this.checkSetting();
         this.avatarSetting();
     },
+    initDOM() {         // 初始化 DOM
+        $('.user-setting .background-image').css('background-image', 'url('+ c.userAvatar +')');
+        $('.user-setting .avatar-image').attr('src', c.userAvatar);
+    },
     checkLogin() {      // 登录状态监测
         var userName = localStorage.getItem('UserName');
+        var userAvatar = localStorage.getItem('UserAvatar');
         if (userName === null || userName === undefined) {
             location.href = '/login';
         } else {
             // 初始化连接
             c = new Connect();
             c.username = userName;
+            c.userAvatar = userAvatar;
             c.usernameEmit(userName);
         }
     },
@@ -865,37 +842,26 @@ App.prototype = {
         $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function(e) {
             var t = $(this)[0].files[0];
             var param = new FormData();
-            param.append("file", t ,t.name);
-            console.log(param.get('file'));
-            // axios({
-            //     url: UPLOAD_API,
-            //     method: 'POST',
-            //     data: formDataInit(param),
-            //     headers: {
-            //         'Content-Type':'application/x-www-form-urlencoded'
-            //     }
-            // }).then(res => {
-            //     console.log(res);
-            // });
-
-            $.ajax({
+            param.append("avatar", t);
+            param.append("avatarName", c.username);
+            axios({
                 url: UPLOAD_API,
+                method: 'POST',
                 data: param,
-                type:'post',
-                cache: false,
-                contentType: false, //不可缺参数
-                processData: false, //不可缺参数
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
-                },
-                success: function(data) {
-                    console.log(data);
-                },
-                error: function() {
-                    console.log('error');
+                    "Content-Type": "multipart/form-data"
                 }
+            }).then(res => {
+                var c = res.data.Code;
+                var s = res.data.Str;
+                if(c === 0) {
+                    // 文件上传成功
+                    layer.msg(s);
+                }else if(c === -1) {
+                    layer.msg(s);
+                }
+                app.closeUserSetting();
             });
-
         });
     },
     eventListeners() {      // 应用程序事件
@@ -932,18 +898,10 @@ App.prototype = {
             e.stopPropagation();
         });
         $(document).on('click', function (e) {
-            // 系统设置关闭
-            $('.system-setting').css({
-                opacity: 0,
-                transform: 'scale(0)'
-            });
-            // 用户设置关闭
-            $('.user-setting').css({
-                opacity: 0,
-                transform: 'scale(0.4)'
-            });
+            this.closeSystemSetting();
+            this.closeUserSetting();
             $mask.hide();
-        });
+        }.bind(this));
         // switch 开关
         $('.system-setting .switchBtn').on('click', function (e) {
             var t = $(this).siblings('span').text();
@@ -960,6 +918,24 @@ App.prototype = {
 
         // 退出
         $('#logoutBtn').on('click', this.logout);
+    },
+    // 用户设置关闭调用
+    closeUserSetting() {
+        // 用户设置关闭
+        $('.user-setting').css({
+            opacity: 0,
+            transform: 'scale(0.4)'
+        });
+        $mask.hide();
+    },
+    // 系统设置关闭调用
+    closeSystemSetting() {
+        // 系统设置关闭
+        $('.system-setting').css({
+            opacity: 0,
+            transform: 'scale(0)'
+        });
+        $mask.hide();
     },
     openUserListItem() {
         $body.on('click', '.user-list-item', function () {
@@ -997,13 +973,8 @@ App.prototype = {
         });
     },
     player() {
-        axios.get('https://www.emlice.top/api/music/url?id=436514312').then(res => {
-            var data = res.data.data[0].url;
-            var a = new Audio();
-            a.src = data.replace('http', 'https');
-            a.play();
-            a.loop = 'loop';
-        });
+        //参数1：歌词容器选择器，参数2：歌单id，参数3：歌曲重定向地址，用于欺骗浏览器音频跨域显示频谱
+        playmusic('.description','432778620');
     },
 }
 

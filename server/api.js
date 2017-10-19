@@ -17,6 +17,9 @@ app.use(bodyParser.urlencoded({ extended: false }))
 function PostCallbackData(obj) {
     this.Code = obj.Code;
     this.Data = obj.Data;
+    if(obj.avatar) {
+        this.avatar = obj.avatar;
+    }
 }
 
 
@@ -53,7 +56,8 @@ app.post( api + '/login',function(req,res) {
                 loginState.save();
                 var c = new PostCallbackData({
                     Code: 0,
-                    Data: "登录成功!"
+                    Data: "登录成功!",
+                    avatar: result.avatar
                 });
                 res.send(JSON.stringify(c));
             }
@@ -76,6 +80,8 @@ app.post( api + '/register', function(req, res) {
     req.on("end",function(){
         var parseStr = JSON.parse(str);
         parseStr.date = date;
+        // 默认头像
+        parseStr.avatar = 'http://static.emlice.top/images/users/default.png';
         var query = User.findOne({name: parseStr.name});
         query.exec(function(err,person) {
             if(err) throw err;

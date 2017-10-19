@@ -64,9 +64,11 @@
                 }
             }).then(res => {
                 var c = res.data.Code;
+                var avatar = res.data.avatar;
                 if(c === 0) {
                     // 登录成功
                     localStorage.setItem('UserName', name);
+                    localStorage.setItem('UserAvatar', avatar);
                     location.href = '/';
                 }else if(c === -1) {
                     // 账号或密码错误!

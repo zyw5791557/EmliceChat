@@ -88,6 +88,7 @@ body {
     justify-content: center;
     align-items: center;
     color: #fff;
+    background-size: 60px 60px;
 }
 
 
@@ -777,7 +778,7 @@ header {
 
 .user-setting>:nth-child(1000n+1) .background-image {
     overflow: hidden;
-    filter: blur(20px);
+    filter: blur(0px);
     background-repeat: no-repeat;
     background-size: 300px 300px
 }
