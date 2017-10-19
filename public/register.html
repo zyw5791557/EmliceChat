@@ -74,6 +74,7 @@
                     layer.msg('注册成功, 即将自动跳转。');
                     setTimeout(function () {
                         localStorage.setItem('UserName', name);
+                        localStorage.setItem('UserAvatar', "http://static.emlice.top/images/users/default.png");
                         location.href = '/';
                     }, 1000);
                 } else if (c === 1) {

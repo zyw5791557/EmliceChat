@@ -854,7 +854,16 @@ App.prototype = {
             }).then(res => {
                 var c = res.data.Code;
                 var s = res.data.Str;
+                var a = res.data.Avatar;
                 if(c === 0) {
+                    // 更改本地存贮
+                    c.userAvatar = a;
+                    localStorage.setItem('UserAvatar', a);
+                    // 右上角
+                    $('.user-panel .avatar-text').css('background-image', 'url(' + this.userAvatar + ')');
+                    // 用户设置区域
+                    $('.user-setting .background-image').css('background-image', 'url('+ c.userAvatar +')');
+                    $('.user-setting .avatar-image').attr('src', c.userAvatar);
                     // 文件上传成功
                     layer.msg(s);
                 }else if(c === -1) {

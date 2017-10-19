@@ -67,6 +67,7 @@
                 var avatar = res.data.avatar;
                 if(c === 0) {
                     // 登录成功
+                    console.log(res);
                     localStorage.setItem('UserName', name);
                     localStorage.setItem('UserAvatar', avatar);
                     location.href = '/';
