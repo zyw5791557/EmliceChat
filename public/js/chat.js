@@ -5,9 +5,23 @@
  */
 var c, app;
 
+// 客户端配置项
 // 静态资源服务器 API
-const BASE_URL   = 'http://localhost:8989';
-const UPLOAD_API = BASE_URL + '/api/avatar_upload';
+const BASE_URL    = 'http://localhost:8989';
+const UPLOAD_API  = BASE_URL + '/api/avatar_upload';
+const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';
+const WEB_SITE     = 'https://www.emlice.top';
+
+// 表情配置表
+const baidu_address = 'http://localhost:8989/images/expressions/baidu.png';
+const baidu = [
+    '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
+    '鄙视', '不高兴', '真棒', '钱', '疑问', '阴险', '吐', '咦', '委屈', '花心',
+    '呼', '笑眼', '冷', '太开心', '滑稽', '勉强', '狂汗', '乖', '睡觉', '惊哭',
+    '升起', '惊讶', '喷', '爱心', '心碎', '玫瑰', '礼物', '彩虹', '星星月亮', '太阳',
+    '钱币', '灯泡', '咖啡', '蛋糕', '音乐', 'haha', '胜利', '大拇指', '弱', 'ok',
+];
+const baidu_space = 30;
 
 // 连接命名
 var c,
@@ -33,7 +47,7 @@ MyComponents.prototype = {
     chatPanel(dataObj, to) {
 
         var usr = `
-        <div class="user-info" style="opacity: 0; transform: scale(0.4); display: none;">
+        <div class="user-info" style="opacity: 0; transform: scale(0); display: none;">
             
         </div>
         `;
@@ -54,160 +68,160 @@ MyComponents.prototype = {
         `;
 
         var emo = `
-        <div class="expression" style="opacity: 0; transform: scale(0.4); display: none;">
+        <div class="expression" style="opacity: 0; transform: scale(0); display: none;">
             <div class="default-expression">
                 <div>
-                    <div style="background-position: left 0px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left 0px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -30px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -30px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -60px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -60px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -90px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -90px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -120px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -120px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -150px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -150px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -180px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -180px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -210px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -210px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -240px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -240px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -270px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -270px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -300px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -300px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -330px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -330px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -360px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -360px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -390px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -390px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -420px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -420px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -450px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -450px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -480px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -480px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -510px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -510px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -540px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -540px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -570px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -570px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -600px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -600px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -630px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -630px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -660px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -660px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -690px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -690px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -720px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -720px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -750px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -750px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -780px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -780px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -810px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -810px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -840px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -840px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -870px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -870px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -900px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -900px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -930px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -930px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -960px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -960px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -990px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -990px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1020px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1020px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1050px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1050px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1080px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1080px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1110px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1110px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1140px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1140px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1170px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1170px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1200px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1200px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1230px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1230px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1260px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1260px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1290px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1290px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1320px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1320px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1350px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1350px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1380px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1380px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1410px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1410px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1440px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1440px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
                 <div>
-                    <div style="background-position: left -1470px; background-image: url(&quot;https://assets.suisuijiang.com/images/expressions.73fca.png&quot;);"></div>
+                    <div style="background-position: left -1470px; background-image: url(&quot;${baidu_address}&quot;);"></div>
                 </div>
             </div>
-            <div>
+            <div class="select-panel">
                 <div class="selected">
                     <img src="https://assets.suisuijiang.com/images/default-expression.f7d7c.png"></div>
                 <div class="">
@@ -216,7 +230,7 @@ MyComponents.prototype = {
                     <img src="https://assets.suisuijiang.com/images/collect-expression.05769.png"></div>
             </div>
         </div>
-        <div class="code-input" style="opacity: 0; transform: scale(0.4); display: none;">
+        <div class="code-input" style="opacity: 0; transform: scale(0); display: none;">
             <textarea placeholder="输入要展示的代码"></textarea>
             <div>
                 <button>发送</button>
@@ -225,10 +239,10 @@ MyComponents.prototype = {
         `;
 
         var float = `
-        <div class="float-panel" style="right: -340px;">
+        <div class="float-panel roomInfoPanel" style="right: -340px;">
             <div>
                 <span>群设置</span>
-                <i class="icon"></i></div>
+                <i class="icon close"></i></div>
             <div class="group-info">
                 <div class="content">
                     <span>管理员：</span>
@@ -270,27 +284,27 @@ MyComponents.prototype = {
             <div class="group-info-exit">
                 <button>退出群组</button></div>
         </div>
-        <div class="float-panel" style="right: -340px;">
+        <div class="float-panel roomNoticePanel" style="right: -340px;">
             <div>
                 <span>群公告</span>
-                <i class="icon"></i></div>
+                <i class="icon close"></i></div>
             <div class="group-notice">
                 <div>
                     <!-- react-text: 1702 -->system
                     <!-- /react-text -->
                     <!-- react-text: 1703 -->更新于
                     <!-- /react-text -->
-                    <!-- react-text: 1704 -->2017年05月20日 3:49
+                    <!-- react-text: 1704 -->2017年10月20日 17:43
                     <!-- /react-text --></div>
-                <div class="content">欢迎各位来到fiora</div></div>
+                <div class="content">欢迎各位来到 Emlice </div></div>
         </div>
         `;
 
         var notic = `
         <div>
-            <div style="margin: auto 8px;">
+            <div style="margin: auto 8px;" class="roomNotice">
                 <i class="icon" title="公告"></i></div>
-            <div style="margin: auto 8px;">
+            <div style="margin: auto 8px;" class="roomInfo">
                 <i class="icon" title="关于"></i></div>
         </div>
         `;
@@ -334,7 +348,7 @@ MyComponents.prototype = {
     userListItem(obj) {
         var oHtml = `
         <div class="user-list-item" data-user="${obj.to}">
-            <img class="avatar-image" src="https://api.adorable.io/avatars/40/${obj.to}" alt="">
+            <img class="avatar-image" src="${obj.avatar}" alt="">
             <div class="unread">0</div>
             <div class="content">
                 <div>
@@ -408,6 +422,8 @@ UserInfo.prototype = {
         this.close();
         this.openChat();
         this.openUserSetting();
+        this.toolBtn();
+        this.roomInfo();
     },
     openAvatarInfo: function () {
         var _this = this;
@@ -453,7 +469,7 @@ UserInfo.prototype = {
             _this.userInfoFlag = true;
             $userInfoModel.css({
                 opacity: 0,
-                transform: 'scale(0.4)',
+                transform: 'scale(0)',
             })
                 .hide();
             $userInfoModel.empty();
@@ -471,7 +487,8 @@ UserInfo.prototype = {
             var f = $userList.find('.user-list-item[data-user=' + username + ']');
             if (f.length === 0) {
                 let o = {
-                    to: username
+                    to: username,
+                    avatar: avatar
                 }
                 $userList.append(components.userListItem(o));
                 // 添加临时会话成员
@@ -511,7 +528,7 @@ UserInfo.prototype = {
             $('.chat-panel[chat-type=' + username + ']').show();
         });
     },
-    openUserSetting: function () {
+    openUserSetting: function () {          // 打开用户设置
         $('.avatar-text[title=查看个人信息]').on('click', function (e) {
             var e = e || window.event;
             // 阻止事件冒泡
@@ -529,7 +546,7 @@ UserInfo.prototype = {
         $('.user-setting div:eq(0) i').on('click', function () {
             $('.user-setting').css({
                 opacity: 0,
-                transform: 'scale(0.4)'
+                transform: 'scale(0)'
             });
             $mask.hide();
         });
@@ -540,9 +557,100 @@ UserInfo.prototype = {
         $('.user-setting .avatar-image').on('mouseleave', function () {
             $(this).siblings('.avatar-mask').remove();
         });
+    },
+    toolBtn() {         // 消息辅助输入    表情包/图片/代码格式化
+        // 聊天工具栏阻止冒泡
+        $body.on('click', '.chat-panel .toolbar div', function(e){
+            var e = e || window.event;
+            e.stopPropagation();
+        });
+        // 表情包面板阻止事件冒泡
+        $body.on('click', '.chat-panel .expression', function(e){
+            var e = e || window.event;
+            e.stopPropagation();
+        });
+        // 选择表情
+        $body.on('click', '.chat-panel .expression .default-expression>div', function(){
+            var s = $(this).children().attr('style');
+            // 发送消息
+            var to = $(this).parents('.chat-panel').attr('chat-type');
+            var idx = $(this).index();
+            var msg = {
+                from: window.c.username,
+                avatar: window.c.userAvatar,
+                to: to,
+                message: `#${baidu[idx]}`,
+                date: new Date().getTime()
+            }
+            window.c.sendMsg(msg);
+        });
+
+
+
+        // 表情包
+        $body.on('click', '.chat-panel .toolbar div', function(){
+            var idx = $(this).index();
+            if(idx === 0) {
+                $('.chat-panel .expression').show().css({
+                    opacity: 1,
+                    transform: "scale(1)", 
+                });
+                $mask.show();
+            }else {
+                layer.msg('暂未开放!');
+            }
+        });
+        $body.on('click', '.chat-panel .expression .select-panel div', function(){
+            var idx = $(this).index();
+            $(this).addClass('selected').siblings().removeClass('selected');
+            if(idx === 0) {
+                return;
+            }else {
+                layer.msg('暂未开放!');
+            }
+        });
+
+        
+    },
+    closeTool() {
+        $('.chat-panel .expression').css({
+            opacity: 0,
+            transform: "scale(0)", 
+        });
+        $('.chat-panel .code-input').css({
+            opacity: 0,
+            transform: "scale(0)", 
+        });
+    },
+    roomInfo() {        // 群聊房间信息
+        var _this = this;
+        // 事件委托
+        $body.on('click', '.roomInfo', function(e) {
+            var e = e || window.event;
+            e.stopPropagation();
+            layer.msg('该面板数据正在测试, 暂时为虚假数据!');
+            $('.roomInfoPanel').css('right', '0px');
+            $mask.show();
+        });
+        $body.on('click', '.roomInfoPanel .close', function() {
+            _this.closeRoomPanel();
+        });
+        $body.on('click', '.roomNotice', function(e) {
+            var e = e || window.event;
+            e.stopPropagation();
+            $('.roomNoticePanel').css('right', '0px');
+            $mask.show();
+        });
+        $body.on('click', '.roomNoticePanel .close', function() {
+            _this.closeRoomPanel();
+        });
+    },
+    closeRoomPanel() {
+        $('.roomInfoPanel').css('right', '-340px');
+        $('.roomNoticePanel').css('right', '-340px');
     }
 }
-new UserInfo();
+window.userInfo = new UserInfo();
 
 var socket = io();
 
@@ -550,6 +658,7 @@ var socket = io();
 function Connect() {
     this.username = '';         // 我的连接账号即用户名
     this.userAvatar = '';       // 用户头像
+    this.duration = '';         // 用户时长
     this.myUserListArr = {      // 我的临时会话集合
         all: {
             noRead: 0
@@ -562,7 +671,7 @@ Connect.prototype = {
     usernameEmit(username) {
         var username = this.username;
         socket.emit('user join', username);
-        $('.user-panel .avatar-text').css('background-image', 'url(' + this.userAvatar + ')')
+        $('.user-panel .avatar-text').css('background-image', 'url(' + this.userAvatar + ')');
         $win.show();
         $('.input-box input').focus();
     },
@@ -602,6 +711,21 @@ Connect.prototype = {
                 }
             }
             var isMy = c.username == res[i].from ? true : false;
+
+            function msgProcess(param) {
+                var t = param.charAt(0);
+                if(t === '#') {
+                    var query = param.substr(1);
+                    var baidu_idx;
+                    baidu.some((item,index) => {
+                        if(item === query) {
+                            baidu_idx = index;
+                        }
+                    });
+                    return `<img class="expression-default-message" src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" style="background-position: left -${baidu_idx * baidu_space}px; background-image: url(${baidu_address})" onerror="this.style.display='none'">`;
+                }
+                return param;
+            }   
             var commonHtml = `
                     <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}">
                     <div>
@@ -610,7 +734,7 @@ Connect.prototype = {
                             <span>${(new Date(res[i].date).format('hh:mm:ss'))}</span>
                         </div>
                         <div class="text">
-                            ${res[i].message}
+                            ${msgProcess(res[i].message)}
                         </div>
                     </div>
             `;
@@ -681,7 +805,8 @@ socket.on('message', function (res) {
         var f = $userList.find('.user-list-item[data-user=' + res[i].from + ']');
         if (f.length === 0 && res[i].from !== c.username && res[i].to !== 'all') {
             let o = {
-                to: res[i].from
+                to: res[i].from,
+                avatar: res[i].avatar
             }
             $userList.append(components.userListItem(o));
             // 添加临时会话成员
@@ -785,20 +910,26 @@ function App() {
 App.prototype = {
     init() {
         this.checkLogin();
-        this.initDOM();
+        this.updateUserInfo();
         this.openUserListItem();
         this.player();
         this.eventListeners();
         this.checkSetting();
         this.avatarSetting();
     },
-    initDOM() {         // 初始化 DOM
-        $('.user-setting .background-image').css('background-image', 'url('+ c.userAvatar +')');
-        $('.user-setting .avatar-image').attr('src', c.userAvatar);
+    updateUserInfo(obj) {       // 更新用户信息
+        // 右上角
+        $('.user-panel .avatar-text').css('background-image', 'url(' + window.c.userAvatar + ')');
+        // 用户设置区域
+        $('.user-setting .background-image').css('background-image', 'url('+ window.c.userAvatar +')');
+        $('.user-setting .avatar-image').attr('src', window.c.userAvatar);
+        $('.user-setting .avatar-image').siblings('span').text(window.c.username);
+        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(2)').text(window.c.duration + '天');
     },
     checkLogin() {      // 登录状态监测
         var userName = localStorage.getItem('UserName');
         var userAvatar = localStorage.getItem('UserAvatar');
+        var duration  = localStorage.getItem('Duration');
         if (userName === null || userName === undefined) {
             location.href = '/login';
         } else {
@@ -806,12 +937,73 @@ App.prototype = {
             c = new Connect();
             c.username = userName;
             c.userAvatar = userAvatar;
+            c.duration = duration;
             c.usernameEmit(userName);
         }
     },
     logout() {          // 退出登录
         localStorage.removeItem('UserName');
         location.href = '/login';
+    },
+    editUserInfo(f) {    // 编辑用户信息
+        if(f) {
+            var Edit_html = `
+                <div class="edit-status">
+                    <div>
+                        <div>
+                            <div>
+                                <span>性别:</span>
+                                <span>出生日期:</span>
+                                <span>位置:</span>
+                                <span>个人网站:</span>
+                                <span>github:</span>
+                                <span>qq:</span>
+                            </div>
+                            <div>
+                                <select>
+                                    <option value="male">男</option>
+                                    <option value="female">女</option>
+                                </select>
+                                <input type="date" value="2016-09-11">
+                                <input type="text" value="">
+                                <input type="url" value="">
+                                <input type="url" value="">
+                                <input type="text" value="">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button>确定</button>
+                    </div>
+                </div>
+            `;
+            $('.user-setting').find('.normal-status').remove().end().append(Edit_html);
+        }else {
+            var Panel_html = `
+                <div class="normal-status">
+                    <div>
+                        <div>
+                            <div>
+                                <span>性别:</span>
+                                <span>年龄:</span>
+                                <span>时长:</span>
+                                <span>位置:</span>
+                            </div>
+                            <div>
+                                <span>男</span>
+                                <span>1</span>
+                                <span>32天</span>
+                                <span>火星</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button>编辑</button>
+                    </div>
+                </div>
+            `;
+            $('.user-setting').find('.edit-status').remove().end().append(Panel_html);            
+        }
     },
     checkSetting() {        // 检查用户设置 初始化
         var d = JSON.parse(localStorage.getItem('desktopNotification'));
@@ -836,6 +1028,7 @@ App.prototype = {
         }
     },
     avatarSetting() {       // 头像设置
+        var _this = this;
         $('.user-setting .avatar-image').on('click', function() {       // 点击头像触发 图片上传器
             $(this).siblings('input[type=file]')[0].click();
         });
@@ -854,16 +1047,12 @@ App.prototype = {
             }).then(res => {
                 var c = res.data.Code;
                 var s = res.data.Str;
-                var a = res.data.Avatar;
+                var a = res.data.Avatar + '?' + Date.now();
                 if(c === 0) {
                     // 更改本地存贮
-                    c.userAvatar = a;
+                    window.c.userAvatar = a;
                     localStorage.setItem('UserAvatar', a);
-                    // 右上角
-                    $('.user-panel .avatar-text').css('background-image', 'url(' + this.userAvatar + ')');
-                    // 用户设置区域
-                    $('.user-setting .background-image').css('background-image', 'url('+ c.userAvatar +')');
-                    $('.user-setting .avatar-image').attr('src', c.userAvatar);
+                    _this.updateUserInfo();
                     // 文件上传成功
                     layer.msg(s);
                 }else if(c === -1) {
@@ -874,6 +1063,7 @@ App.prototype = {
         });
     },
     eventListeners() {      // 应用程序事件
+        var _this = this;
         $('.nav-list .nav-list-item').on('click', function (e) {
             var e = e || window.event;
             // 阻止事件冒泡
@@ -909,6 +1099,8 @@ App.prototype = {
         $(document).on('click', function (e) {
             this.closeSystemSetting();
             this.closeUserSetting();
+            window.userInfo.closeTool();
+            window.userInfo.closeRoomPanel();
             $mask.hide();
         }.bind(this));
         // switch 开关
@@ -927,13 +1119,31 @@ App.prototype = {
 
         // 退出
         $('#logoutBtn').on('click', this.logout);
+
+        // 查看源码
+        $('.system-setting div:eq(1) .button').eq(0).on('click', function() {
+            window.open(SOURCE_CODE,'_blank');
+        });
+        // 作者
+        $('.system-setting div:eq(1) .button').eq(1).on('click', function() {
+            window.open(WEB_SITE,'_blank');
+        });
+
+        // 编辑用户信息
+        $('.user-setting').on('click', '.normal-status button', function() {
+            _this.editUserInfo(1);
+        });
+        // 确认用户信息
+        $('.user-setting').on('click', '.edit-status button', function() {
+            _this.editUserInfo(0);
+        });
     },
     // 用户设置关闭调用
     closeUserSetting() {
         // 用户设置关闭
         $('.user-setting').css({
             opacity: 0,
-            transform: 'scale(0.4)'
+            transform: 'scale(0)'
         });
         $mask.hide();
     },
@@ -957,13 +1167,15 @@ App.prototype = {
 
             var dataUserPanel = $(this).attr('data-user');
             var f = $('.chat-panel').attr('chat-type');
+            // 用户头像
+            var avatar = $(this).find('.avatar-image').attr('src');
             if (dataUserPanel === f) return;
             $('.chat-panel').remove();
             // 如果 $empty 存在就删掉它
             $empty && $empty.remove();
             var dataObj = {
                 com: {
-                    avatar: dataUserPanel === 'all' ? '/images/sleep.gif' : 'https://api.adorable.io/avatars/40/' + dataUserPanel,
+                    avatar: dataUserPanel === 'all' ? '/images/sleep.gif' : avatar,
                     username: dataUserPanel === 'all' ? '群聊' : dataUserPanel
                 },
                 usr: {

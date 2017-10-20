@@ -10,15 +10,19 @@ mongoose.Promise = global.Promise;  // 为了避免警告的出现, 因为 mongo
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }))
 
+// 静态资源服务器地址配置
+var STATIC_SERVER = "http://localhost:8989";
+
 
 // 配置登录逻辑
-
-
 function PostCallbackData(obj) {
     this.Code = obj.Code;
     this.Data = obj.Data;
-    if(obj.avatar) {
+    if(obj.avatar) {                // 头像
         this.avatar = obj.avatar;
+    }
+    if(obj.duration) {              // 时长
+        this.duration = obj.duration;
     }
 }
 
@@ -54,10 +58,13 @@ app.post( api + '/login',function(req,res) {
                 // 保存用户登录记录
                 var loginState = new LoginState(record);
                 loginState.save();
+                // 记录时长
+                var duration = Math.ceil((date - result.date) / (1000 * 60 * 60 * 24));     // 向上取整
                 var c = new PostCallbackData({
                     Code: 0,
                     Data: "登录成功!",
-                    avatar: result.avatar
+                    avatar: result.avatar,
+                    duration: duration
                 });
                 res.send(JSON.stringify(c));
             }
@@ -81,7 +88,7 @@ app.post( api + '/register', function(req, res) {
         var parseStr = JSON.parse(str);
         parseStr.date = date;
         // 默认头像
-        parseStr.avatar = 'http://static.emlice.top/images/users/default.png';
+        parseStr.avatar = STATIC_SERVER + '/images/users/default.png';
         var query = User.findOne({name: parseStr.name});
         query.exec(function(err,person) {
             if(err) throw err;

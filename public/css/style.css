@@ -605,7 +605,7 @@ header {
 }
 
 .system-setting {
-    z-index: 11;
+    z-index: 12;
     left: 0;
     right: 0;
     position: absolute;
@@ -1497,7 +1497,10 @@ header {
     background-color: #f1f1f1;
     box-shadow: -5px 0 15px -2px #aaa;
     display: flex;
-    flex-direction: column
+    flex-direction: column;
+    -webkit-transition: all .3s;
+    -moz-transition: all .3s;
+    transition: all .3s;
 }
 
 .float-panel>div:first-child {
@@ -1581,7 +1584,10 @@ header {
     z-index: 11;
     background-color: #fff;
     bottom: 45px;
-    box-shadow: 0 0 10px #999
+    box-shadow: 0 0 10px #999;
+    -webkit-transition: all .3s;
+    -moz-transition: all .3s;
+    transition: all .3s;
 }
 
 .expression .default-expression {
@@ -1705,7 +1711,10 @@ header {
     bottom: 45px;
     border-radius: 5px;
     background-color: #fff;
-    width: 400px
+    width: 400px;
+    -webkit-transition: all .3s;
+    -moz-transition: all .3s;
+    transition: all .3s;
 }
 
 .code-input>textarea {
@@ -1756,9 +1765,7 @@ header {
     display: flex;
     flex-direction: column;
     border-radius: 10px;
-    -webkit-transition: all .3s;
-    -moz-transition: all .3s;
-    transition: all .3s;
+    roomInfoPanel
 }
 
 .user-info>:nth-child(1000n+1) {

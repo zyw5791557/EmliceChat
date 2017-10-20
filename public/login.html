@@ -65,11 +65,13 @@
             }).then(res => {
                 var c = res.data.Code;
                 var avatar = res.data.avatar;
+                var h = res.data.duration;
                 if(c === 0) {
                     // 登录成功
                     console.log(res);
                     localStorage.setItem('UserName', name);
                     localStorage.setItem('UserAvatar', avatar);
+                    localStorage.setItem('Duration', h); // 时长
                     location.href = '/';
                 }else if(c === -1) {
                     // 账号或密码错误!
