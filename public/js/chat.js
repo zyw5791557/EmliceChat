@@ -7,7 +7,8 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-const BASE_URL    = 'http://localhost:8989';
+// const BASE_URL    = 'http://localhost:8989';        // 本地测试服务器
+const BASE_URL    = 'http://static.emlice.top';        // 线上服务器
 const UPLOAD_API  = BASE_URL + '/api/avatar_upload';
 const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';
 const WEB_SITE     = 'https://www.emlice.top';
