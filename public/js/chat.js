@@ -559,6 +559,7 @@ UserInfo.prototype = {
         });
     },
     toolBtn() {         // 消息辅助输入    表情包/图片/代码格式化
+        var _this = this;
         // 聊天工具栏阻止冒泡
         $body.on('click', '.chat-panel .toolbar div', function(e){
             var e = e || window.event;
@@ -583,6 +584,8 @@ UserInfo.prototype = {
                 date: new Date().getTime()
             }
             window.c.sendMsg(msg);
+            _this.closeTool();
+            $mask.hide();
         });
 
 

@@ -176,7 +176,15 @@
 			lrcbox = $(selector);
 			oldtxt = lrcbox.text();
 			api = userapi||'';
-			fetch('https://api.imjad.cn/cloudmusic/?type=playlist&id='+listid+'&_='+Date.now())
+			// 备用地址配置请求头
+			var headers = new Headers();					
+			headers.append('Accept', 'application/json');
+			var request = new Request('https://www.emlice.top/api/playlist/detail?id=' + listid, {
+				headers: headers,
+				method: 'GET'
+			});
+			// fetch('https://api.imjad.cn/cloudmusic/?type=playlist&id='+listid+'&_='+Date.now())		
+			fetch(request)			// 备用地址
 			.then(resp=>resp.json())
 			.then(json=>{
 				if(json.code==200){
