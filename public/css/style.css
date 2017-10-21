@@ -2085,3 +2085,27 @@ header {
     width: 40px!important;
     height: 40px!important;
 }
+
+/* 歌词容器 */
+
+.lyric_content {
+    position: fixed;
+    top: 95px;
+    left: 50%;
+    width: 500px;
+    text-align: right;
+    height: 30px;
+    line-height: 30px;
+    font-size: 90%;
+    font-style: italic;
+    color: #2999ce;
+    display: none;
+}
+.lyric_content span {
+    float: right;
+}
+.description {
+    padding-right: 120px;
+    padding-left: 8px; 
+    float: right;
+}

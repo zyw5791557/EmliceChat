@@ -14,7 +14,8 @@ const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';
 const WEB_SITE     = 'https://www.emlice.top';
 
 // 表情配置表
-const baidu_address = 'http://localhost:8989/images/expressions/baidu.png';
+// const baidu_address = BASE_URL + '/images/expressions/baidu.png';		// 本地测试服务器
+const baidu_address = BASE_URL + '/images/expressions/baidu.png';		// 线上服务器
 const baidu = [
     '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
     '鄙视', '不高兴', '真棒', '钱', '疑问', '阴险', '吐', '咦', '委屈', '花心',
@@ -1162,7 +1163,6 @@ App.prototype = {
     },
     openUserListItem() {
         $body.on('click', '.user-list-item', function () {
-
             // 清除该用户下的未读消息
             var u = $(this).attr('data-user');
             c.myUserListArr[u].noRead = 0;
@@ -1176,7 +1176,7 @@ App.prototype = {
             if (dataUserPanel === f) return;
             $('.chat-panel').remove();
             // 如果 $empty 存在就删掉它
-            $empty && $empty.remove();
+            $empty && $empty.remove() && $('.lyric_content').show();
             var dataObj = {
                 com: {
                     avatar: dataUserPanel === 'all' ? '/images/sleep.gif' : avatar,
