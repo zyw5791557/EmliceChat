@@ -1,4 +1,4 @@
-/* user */
+﻿/* user */
 * {
     margin: 0;
     padding: 0;
@@ -2090,6 +2090,7 @@ header {
 
 .lyric_content {
     position: fixed;
+    z-index: -1;
     top: 95px;
     left: 50%;
     width: 500px;
