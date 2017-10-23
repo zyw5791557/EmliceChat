@@ -10,6 +10,11 @@ mongoose.Promise = global.Promise;  // 为了避免警告的出现, 因为 mongo
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }))
 
+// 加密
+var crypto = require('crypto');
+var sha1 = crypto.createHash('sha1');       // 使用 sha1 加密算法
+var $salt = '^ThisisEmliceChat$';           // 简单的静态加盐
+
 // 静态资源服务器地址配置
 // var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
 var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
@@ -42,6 +47,10 @@ app.post( api + '/login',function(req,res) {
     });
     req.on('end', function() {
         var parseStr = JSON.parse(str);
+        // 加密测试
+        sha1.update($salt + parseStr.pwd);
+        var sha1Res = sha1.digest('hex');
+        parseStr.pwd = sha1Res;
         User.findOne(parseStr, function(err, result) {
             if(err) throw err;
             if(result == null) {
@@ -94,6 +103,11 @@ app.post( api + '/register', function(req, res) {
         query.exec(function(err,person) {
             if(err) throw err;
             if(person == null) {
+                // 密码 sha1 加密测试
+                const pwdText = parseStr.pwd;
+                sha1.update($salt + pwdText);
+                var sha1Res = sha1.digest('hex');
+                parseStr.pwd = sha1Res;
                 var user = new User(parseStr);
                 user.save();
                 var record = {

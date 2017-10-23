@@ -2093,13 +2093,17 @@ header {
     z-index: -1;
     top: 95px;
     left: 50%;
-    width: 500px;
+    margin-left: -120px;
+    width: 620px;
     text-align: right;
     height: 30px;
     line-height: 30px;
     font-size: 90%;
     font-style: italic;
     color: #2999ce;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     display: none;
 }
 .lyric_content span {

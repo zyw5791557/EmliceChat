@@ -7,14 +7,15 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-// const BASE_URL    = 'http://localhost:8989';        // 本地测试服务器
-const BASE_URL    = 'http://static.emlice.top';        // 线上服务器
-const UPLOAD_API  = BASE_URL + '/api/avatar_upload';
+const BASE_URL    = 'http://localhost:8989';                         // 本地测试服务器
+// const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
+const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
 const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';
-const WEB_SITE     = 'https://www.emlice.top';
+const WEB_SITE = 'https://www.emlice.top';
 
 // 表情配置表
-// const baidu_address = BASE_URL + '/images/expressions/baidu.png';		// 本地测试服务器
+// const baidu_address = BASE_URL + '/images/expressions/baidu.png';    // 本地测试服务器
 const baidu_address = BASE_URL + '/images/expressions/baidu.png';		// 线上服务器
 const baidu = [
     '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
@@ -563,17 +564,17 @@ UserInfo.prototype = {
     toolBtn() {         // 消息辅助输入    表情包/图片/代码格式化
         var _this = this;
         // 聊天工具栏阻止冒泡
-        $body.on('click', '.chat-panel .toolbar div', function(e){
+        $body.on('click', '.chat-panel .toolbar div', function (e) {
             var e = e || window.event;
             e.stopPropagation();
         });
         // 表情包面板阻止事件冒泡
-        $body.on('click', '.chat-panel .expression', function(e){
+        $body.on('click', '.chat-panel .expression', function (e) {
             var e = e || window.event;
             e.stopPropagation();
         });
         // 选择表情
-        $body.on('click', '.chat-panel .expression .default-expression>div', function(){
+        $body.on('click', '.chat-panel .expression .default-expression>div', function () {
             var s = $(this).children().attr('style');
             // 发送消息
             var to = $(this).parents('.chat-panel').attr('chat-type');
@@ -593,60 +594,60 @@ UserInfo.prototype = {
 
 
         // 表情包
-        $body.on('click', '.chat-panel .toolbar div', function(){
+        $body.on('click', '.chat-panel .toolbar div', function () {
             var idx = $(this).index();
-            if(idx === 0) {
+            if (idx === 0) {
                 $('.chat-panel .expression').show().css({
                     opacity: 1,
-                    transform: "scale(1)", 
+                    transform: "scale(1)",
                 });
                 $mask.show();
-            }else {
+            } else {
                 layer.msg('暂未开放!');
             }
         });
-        $body.on('click', '.chat-panel .expression .select-panel div', function(){
+        $body.on('click', '.chat-panel .expression .select-panel div', function () {
             var idx = $(this).index();
             $(this).addClass('selected').siblings().removeClass('selected');
-            if(idx === 0) {
+            if (idx === 0) {
                 return;
-            }else {
+            } else {
                 layer.msg('暂未开放!');
             }
         });
 
-        
+
     },
     closeTool() {
         $('.chat-panel .expression').css({
             opacity: 0,
-            transform: "scale(0)", 
+            transform: "scale(0)",
         });
         $('.chat-panel .code-input').css({
             opacity: 0,
-            transform: "scale(0)", 
+            transform: "scale(0)",
         });
     },
     roomInfo() {        // 群聊房间信息
         var _this = this;
         // 事件委托
-        $body.on('click', '.roomInfo', function(e) {
+        $body.on('click', '.roomInfo', function (e) {
             var e = e || window.event;
             e.stopPropagation();
             layer.msg('该面板数据正在测试, 暂时为虚假数据!');
             $('.roomInfoPanel').css('right', '0px');
             $mask.show();
         });
-        $body.on('click', '.roomInfoPanel .close', function() {
+        $body.on('click', '.roomInfoPanel .close', function () {
             _this.closeRoomPanel();
         });
-        $body.on('click', '.roomNotice', function(e) {
+        $body.on('click', '.roomNotice', function (e) {
             var e = e || window.event;
             e.stopPropagation();
             $('.roomNoticePanel').css('right', '0px');
             $mask.show();
         });
-        $body.on('click', '.roomNoticePanel .close', function() {
+        $body.on('click', '.roomNoticePanel .close', function () {
             _this.closeRoomPanel();
         });
     },
@@ -692,6 +693,8 @@ Connect.prototype = {
         var p = $('.message-list').parents('.chat-panel').attr('chat-type');
         for (var i = 0; i < res.length; i++) {
 
+            var imgDate = 'img' + Date.now();
+
             if (parseInt(i) === res.length - 1) {
                 // 渲染时间和消息
                 if (res[i].to === 'all') {
@@ -719,18 +722,35 @@ Connect.prototype = {
 
             function msgProcess(param) {
                 var t = param.charAt(0);
-                if(t === '#') {
+                if (t === '#') {
                     var query = param.substr(1);
                     var baidu_idx;
-                    baidu.some((item,index) => {
-                        if(item === query) {
+                    baidu.some((item, index) => {
+                        if (item === query) {
                             baidu_idx = index;
                         }
                     });
-                    return `<img class="expression-default-message" src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" style="background-position: left -${baidu_idx * baidu_space}px; background-image: url(${baidu_address})" onerror="this.style.display='none'">`;
+                    return `
+                        <div class="text">
+                            <img class="expression-default-message" src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" style="background-position: left -${baidu_idx * baidu_space}px; background-image: url(${baidu_address})" onerror="this.style.display='none'">
+                        </div>
+                    `;
+                } else if(t === '%') {
+                    var imgSrc = param.substr(1);
+                    return `
+                        <div class="image">
+                            <img id="${imgDate}" src="${imgSrc}" style="max-height: 200px;">
+                        </div>
+                    `;
+                }else {
+                    return `
+                        <div class="text">
+                            ${param}
+                        </div>
+                    `;
                 }
-                return param;
-            }   
+                
+            }
             var commonHtml = `
                     <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}">
                     <div>
@@ -738,9 +758,7 @@ Connect.prototype = {
                             <span class="message-username">${res[i].from}</span>
                             <span>${(new Date(res[i].date).format('hh:mm:ss'))}</span>
                         </div>
-                        <div class="text">
-                            ${msgProcess(res[i].message)}
-                        </div>
+                        ${msgProcess(res[i].message)}
                     </div>
             `;
             var myHtml = `
@@ -762,10 +780,10 @@ Connect.prototype = {
             } else {
                 $messages.append(unMyHtml);
             }
-            if ($messages.length !== 0) {
+            if (i === res.length - 1) {
                 $messages[0].scrollTop = $messages[0].scrollHeight;
             }
-
+            
         }
     },
     // 调取历史记录
@@ -773,8 +791,6 @@ Connect.prototype = {
         socket.emit('take messages', o);
     }
 }
-
-
 
 
 
@@ -794,6 +810,73 @@ $win.on('keydown', '.input-box input', function (e) {
         }
         c.sendMsg(msg);
         $(this).val('');                  // empty input
+    }
+});
+// 获取剪贴板中的 image 数据完成截图发送功能
+
+
+var imgReader = function (item) {
+    var blob = item.getAsFile();
+    var param = new FormData();
+    param.append("ps", blob);
+    axios({
+        url: UPLOAD_PS_API,
+        method: 'POST',
+        data: param,
+        headers: {
+            "Content-Type": "multipart/form-data"
+        }
+    }).then(res => {
+        console.log(res);
+        var d = res.data.ps;
+        var to = $body.find('.chat-panel').attr('chat-type');
+        var msg = {
+            from: window.c.username,
+            avatar: window.c.userAvatar,
+            to: to,
+            message: `%${d}`,
+            date: new Date().getTime()
+        }
+        window.c.sendMsg(msg);
+    });
+
+
+    //     reader = new FileReader();
+    // // 读取文件后将其显示在网页中
+    // reader.onload = function (e) {
+    //     var img = new Image();
+
+    //     img.src = e.target.result;
+    //     document.body.appendChild(img);
+    // };
+    // // 读取文件
+    // reader.readAsDataURL(blob);
+};
+
+$win.on('paste', '.input-box input', function (e) {
+    // 添加到事件对象中的访问系统剪贴板的接口
+    var clipboardData = e.originalEvent.clipboardData,
+        i = 0,
+        items, item, types;
+
+    if (clipboardData) {
+        items = clipboardData.items;
+        if (!items) {
+            return;
+        }
+        item = items[0];
+        // 保存在剪贴板中的数据类型
+        types = clipboardData.types || [];
+        for (; i < types.length; i++) {
+            if (types[i] === 'Files') {
+                item = items[i];
+                break;
+            }
+        }
+        // 判断是否为图片数据
+        if (item && item.kind === 'file' && item.type.match(/^image\//i)) {
+            imgReader(item);
+        }
     }
 });
 
@@ -851,8 +934,6 @@ socket.on('message', function (res) {
     // 渲染未读消息气泡
     $('.user-list-item').each(function () {
         var t = $(this).attr('data-user');
-        console.log(c.myUserListArr[t].noRead);
-        console.log(this);
         $(this).find('.unread').text(c.myUserListArr[t].noRead);
 
     });
@@ -881,11 +962,11 @@ socket.on('message', function (res) {
                         window.focus();
                         notification.close();
                     };
-                    notification.onshow = function() { 
+                    notification.onshow = function () {
                         //3秒后自动关闭消息框    
-                        setTimeout(function() {  
-                            notification.close();  
-                        }, 3000);  
+                        setTimeout(function () {
+                            notification.close();
+                        }, 3000);
                     }
                 }
             });
@@ -926,7 +1007,7 @@ App.prototype = {
         // 右上角
         $('.user-panel .avatar-text').css('background-image', 'url(' + window.c.userAvatar + ')');
         // 用户设置区域
-        $('.user-setting .background-image').css('background-image', 'url('+ window.c.userAvatar +')');
+        $('.user-setting .background-image').css('background-image', 'url(' + window.c.userAvatar + ')');
         $('.user-setting .avatar-image').attr('src', window.c.userAvatar);
         $('.user-setting .avatar-image').siblings('span').text(window.c.username);
         $('.user-setting .normal-status div div div:eq(1)').find('span:eq(2)').text(window.c.duration + '天');
@@ -934,7 +1015,7 @@ App.prototype = {
     checkLogin() {      // 登录状态监测
         var userName = localStorage.getItem('UserName');
         var userAvatar = localStorage.getItem('UserAvatar');
-        var duration  = localStorage.getItem('Duration');
+        var duration = localStorage.getItem('Duration');
         if (userName === null || userName === undefined) {
             location.href = '/login';
         } else {
@@ -951,7 +1032,7 @@ App.prototype = {
         location.href = '/login';
     },
     editUserInfo(f) {    // 编辑用户信息
-        if(f) {
+        if (f) {
             var Edit_html = `
                 <div class="edit-status">
                     <div>
@@ -983,7 +1064,7 @@ App.prototype = {
                 </div>
             `;
             $('.user-setting').find('.normal-status').remove().end().append(Edit_html);
-        }else {
+        } else {
             var Panel_html = `
                 <div class="normal-status">
                     <div>
@@ -1007,25 +1088,25 @@ App.prototype = {
                     </div>
                 </div>
             `;
-            $('.user-setting').find('.edit-status').remove().end().append(Panel_html);            
+            $('.user-setting').find('.edit-status').remove().end().append(Panel_html);
         }
     },
     checkSetting() {        // 检查用户设置 初始化
         var d = JSON.parse(localStorage.getItem('desktopNotification'));
         var s = JSON.parse(localStorage.getItem('soundNotification'));
-        if(d === null) {
+        if (d === null) {
             localStorage.setItem('desktopNotification', true);
         } else {
-            if(d) {
+            if (d) {
                 $('.system-setting .switch:eq(0) .switchBtn').removeClass('off').addClass('on');
             } else {
                 $('.system-setting .switch:eq(0) .switchBtn').removeClass('on').addClass('off');
             }
         }
-        if(s === null) {
+        if (s === null) {
             localStorage.setItem('soundNotification', true);
         } else {
-            if(s) {
+            if (s) {
                 $('.system-setting .switch:eq(1) .switchBtn').removeClass('off').addClass('on');
             } else {
                 $('.system-setting .switch:eq(1) .switchBtn').removeClass('on').addClass('off');
@@ -1034,16 +1115,16 @@ App.prototype = {
     },
     avatarSetting() {       // 头像设置
         var _this = this;
-        $('.user-setting .avatar-image').on('click', function() {       // 点击头像触发 图片上传器
+        $('.user-setting .avatar-image').on('click', function () {       // 点击头像触发 图片上传器
             $(this).siblings('input[type=file]')[0].click();
         });
-        $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function(e) {
+        $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function (e) {
             var t = $(this)[0].files[0];
             var param = new FormData();
             param.append("avatar", t);
             param.append("avatarName", c.username);
             axios({
-                url: UPLOAD_API,
+                url: UPLOAD_AVATAR_API,
                 method: 'POST',
                 data: param,
                 headers: {
@@ -1053,14 +1134,14 @@ App.prototype = {
                 var c = res.data.Code;
                 var s = res.data.Str;
                 var a = res.data.Avatar + '?' + Date.now();
-                if(c === 0) {
+                if (c === 0) {
                     // 更改本地存贮
                     window.c.userAvatar = a;
                     localStorage.setItem('UserAvatar', a);
                     _this.updateUserInfo();
                     // 文件上传成功
                     layer.msg(s);
-                }else if(c === -1) {
+                } else if (c === -1) {
                     layer.msg(s);
                 }
                 app.closeUserSetting();
@@ -1126,20 +1207,20 @@ App.prototype = {
         $('#logoutBtn').on('click', this.logout);
 
         // 查看源码
-        $('.system-setting div:eq(1) .button').eq(0).on('click', function() {
-            window.open(SOURCE_CODE,'_blank');
+        $('.system-setting div:eq(1) .button').eq(0).on('click', function () {
+            window.open(SOURCE_CODE, '_blank');
         });
         // 作者
-        $('.system-setting div:eq(1) .button').eq(1).on('click', function() {
-            window.open(WEB_SITE,'_blank');
+        $('.system-setting div:eq(1) .button').eq(1).on('click', function () {
+            window.open(WEB_SITE, '_blank');
         });
 
         // 编辑用户信息
-        $('.user-setting').on('click', '.normal-status button', function() {
+        $('.user-setting').on('click', '.normal-status button', function () {
             _this.editUserInfo(1);
         });
         // 确认用户信息
-        $('.user-setting').on('click', '.edit-status button', function() {
+        $('.user-setting').on('click', '.edit-status button', function () {
             _this.editUserInfo(0);
         });
     },
@@ -1199,7 +1280,7 @@ App.prototype = {
     },
     player() {
         //参数1：歌词容器选择器，参数2：歌单id，参数3：歌曲重定向地址，用于欺骗浏览器音频跨域显示频谱
-        playmusic('.description','432778620');
+        playmusic('.description', '432778620');
     },
 }
 
