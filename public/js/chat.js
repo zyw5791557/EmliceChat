@@ -801,6 +801,11 @@ Connect.prototype = {
             }
 
         }
+        // 图片放大
+        PostbirdImgGlass.init({
+            domSelector: '.native-message .image img',
+            animation:true
+        });
         /**
          * 创建 imagesLoaded 实例
          * 确保 image 加载完毕改变聊天室 scrollTop
@@ -850,6 +855,7 @@ var imgReader = function (item) {
         layer.msg('请截图重新上传~');
         return;
     }
+    console.log(blob);
     var param = new FormData();
     param.append("ps", blob);
     axios({
@@ -861,16 +867,23 @@ var imgReader = function (item) {
         }
     }).then(res => {
         console.log(res);
-        var d = res.data.ps;
-        var to = $body.find('.chat-panel').attr('chat-type');
-        var msg = {
-            from: window.c.username,
-            avatar: window.c.userAvatar,
-            to: to,
-            message: `%${d}`,
-            date: new Date().getTime()
+        var Code = res.data.Code;
+        var Str  = res.data.Str;
+        if(Code === 0) {
+            var d = res.data.ps;
+            var to = $body.find('.chat-panel').attr('chat-type');
+            var msg = {
+                from: window.c.username,
+                avatar: window.c.userAvatar,
+                to: to,
+                message: `%${d}`,
+                date: new Date().getTime()
+            }
+            window.c.sendMsg(msg);
+        } else if (Code === -1) {
+            layer.msg(Str);
+            return;
         }
-        window.c.sendMsg(msg);
     });
 };
 
