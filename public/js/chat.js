@@ -7,7 +7,7 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-const BASE_URL    = 'http://localhost:8989';                         // 本地测试服务器
+const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
 // const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
@@ -39,7 +39,6 @@ var c,
     $all = $('.chat-panel[chat-type=all]');
 $empty.show();
 $all.hide();
-
 
 // components 组件分发
 function MyComponents() {
@@ -395,7 +394,17 @@ Date.prototype.format = function (fmt) {
     }
     return fmt;
 }
-
+// 消息提示加工厂
+function noticeProcess(param) {
+    var t = param.charAt(0);
+    if (t === '#') {
+        return `[表情]`;
+    } else if (t === '%') {
+        return `[图片]`;
+    } else {
+        return param;
+    }
+}
 
 
 // 向上滚动加载
@@ -430,7 +439,9 @@ UserInfo.prototype = {
     },
     openAvatarInfo: function () {
         var _this = this;
-        $win.on('click', '.avatar-image.user-icon', function () {
+        $win.on('click', '.avatar-image.user-icon', function (e) {
+            var e = e || event;
+            e.stopPropagation();
             var uif = _this.userInfoFlag;
             if (uif === false) return;
             _this.userInfoFlag = false;
@@ -458,25 +469,32 @@ UserInfo.prototype = {
                 <div><button class="singleChatBtn" data-to="${username}" data-avatar="${src}">发起聊天</button></div>
             </div>
             `;
-            $userInfoModel = $('.user-info');
+            var $userInfoModel = $('.user-info');
             $userInfoModel.append(commonHtml);
             $userInfoModel.show().css({
                 opacity: 1,
                 transform: 'scale(1)',
             });
+            $mask.show();
         });
     },
     close: function () {
         var _this = this;
         $win.on('click', '.user-info i.icon', function () {
-            _this.userInfoFlag = true;
-            $userInfoModel.css({
-                opacity: 0,
-                transform: 'scale(0)',
-            })
-                .hide();
-            $userInfoModel.empty();
+            _this.closeUserInfo(_this);
+            $mask.hide();
         });
+    },
+    closeUserInfo(that) {
+        var $userInfoModel = $('.user-info');
+        $userInfoModel.css({
+            opacity: 0,
+            transform: 'scale(0)',
+        });
+        setTimeout(() => {
+            $userInfoModel.empty();
+            that.userInfoFlag = true;
+        }, 300);
     },
     // 新建聊天窗口
     openChat: function () {
@@ -692,21 +710,18 @@ Connect.prototype = {
         // 判断当前窗口是否是会话窗花
         var p = $('.message-list').parents('.chat-panel').attr('chat-type');
         for (var i = 0; i < res.length; i++) {
-
-            var imgDate = 'img' + Date.now();
-
             if (parseInt(i) === res.length - 1) {
                 // 渲染时间和消息
                 if (res[i].to === 'all') {
                     console.log('提示群聊消息咯');
-                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm')));
                 } else {
                     console.log('提示私聊消息咯');
-                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
-                    $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(1).find('p').text(res[i].from + '：' + res[i].message);
-                    $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm:ss')));
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm')));
+                    $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
+                    $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm')));
                 }
             }
 
@@ -735,21 +750,21 @@ Connect.prototype = {
                             <img class="expression-default-message" src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" style="background-position: left -${baidu_idx * baidu_space}px; background-image: url(${baidu_address})" onerror="this.style.display='none'">
                         </div>
                     `;
-                } else if(t === '%') {
+                } else if (t === '%') {
                     var imgSrc = param.substr(1);
                     return `
                         <div class="image">
-                            <img id="${imgDate}" src="${imgSrc}" style="max-height: 200px;">
+                            <img src="${imgSrc}" data-action="zoom" style="max-height: 200px;">
                         </div>
                     `;
-                }else {
+                } else {
                     return `
                         <div class="text">
                             ${param}
                         </div>
                     `;
                 }
-                
+
             }
             var commonHtml = `
                     <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}">
@@ -781,10 +796,21 @@ Connect.prototype = {
                 $messages.append(unMyHtml);
             }
             if (i === res.length - 1) {
+                if ($messages.length === 0) return;
                 $messages[0].scrollTop = $messages[0].scrollHeight;
             }
-            
+
         }
+        /**
+         * 创建 imagesLoaded 实例
+         * 确保 image 加载完毕改变聊天室 scrollTop
+         */
+        var imgLoad = imagesLoaded($messages);
+        // vanilla JS
+        imgLoad.on('always', function (instance) {
+            if ($messages.length === 0) return;
+            $messages[0].scrollTop = $messages[0].scrollHeight;
+        });
     },
     // 调取历史记录
     takeMsg(o) {
@@ -817,6 +843,13 @@ $win.on('keydown', '.input-box input', function (e) {
 
 var imgReader = function (item) {
     var blob = item.getAsFile();
+    if(blob !== null && blob.size > 1.5 * 1024 * 1024) {
+        layer.msg('图片太大, 请压缩后重新上传~');
+        return;
+    } else if (blob === null) {
+        layer.msg('请截图重新上传~');
+        return;
+    }
     var param = new FormData();
     param.append("ps", blob);
     axios({
@@ -839,44 +872,20 @@ var imgReader = function (item) {
         }
         window.c.sendMsg(msg);
     });
-
-
-    //     reader = new FileReader();
-    // // 读取文件后将其显示在网页中
-    // reader.onload = function (e) {
-    //     var img = new Image();
-
-    //     img.src = e.target.result;
-    //     document.body.appendChild(img);
-    // };
-    // // 读取文件
-    // reader.readAsDataURL(blob);
 };
 
 $win.on('paste', '.input-box input', function (e) {
-    // 添加到事件对象中的访问系统剪贴板的接口
-    var clipboardData = e.originalEvent.clipboardData,
-        i = 0,
-        items, item, types;
-
-    if (clipboardData) {
-        items = clipboardData.items;
-        if (!items) {
-            return;
-        }
-        item = items[0];
-        // 保存在剪贴板中的数据类型
-        types = clipboardData.types || [];
-        for (; i < types.length; i++) {
-            if (types[i] === 'Files') {
-                item = items[i];
-                break;
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    const types = (e.clipboardData || e.originalEvent.clipboardData).types;
+    // 如果包含文件内容
+    if (types.indexOf('Files') > -1) {
+        for (let index = 0; index < items.length; index++) {
+            const item = items[index];
+            if (item.kind === 'file' && item.type.match(/^image/)) {
+                imgReader(item);
             }
         }
-        // 判断是否为图片数据
-        if (item && item.kind === 'file' && item.type.match(/^image\//i)) {
-            imgReader(item);
-        }
+        e.preventDefault();
     }
 });
 
@@ -955,7 +964,7 @@ socket.on('message', function (res) {
                         lang: "zh-CN",
                         // tag: "testNotice",
                         icon: '/images/sleep.gif',
-                        body: `${res[0].from}：${res[0].message}`,
+                        body: `${res[0].from}：${noticeProcess(res[0].message)}`,
                         // renotify: true,     // 是否替换之前的通知
                     });
                     notification.onclick = function () {
@@ -1187,6 +1196,7 @@ App.prototype = {
             this.closeUserSetting();
             window.userInfo.closeTool();
             window.userInfo.closeRoomPanel();
+            window.userInfo.closeUserInfo(window.userInfo);
             $mask.hide();
         }.bind(this));
         // switch 开关

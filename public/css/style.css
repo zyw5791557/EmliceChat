@@ -1765,7 +1765,9 @@ header {
     display: flex;
     flex-direction: column;
     border-radius: 10px;
-    roomInfoPanel
+    -webkit-transition: all .3s;
+    -moz-transition: all .3s;
+    transition: all .3s;
 }
 
 .user-info>:nth-child(1000n+1) {

@@ -12,7 +12,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 // 加密
 var crypto = require('crypto');
-var sha1 = crypto.createHash('sha1');       // 使用 sha1 加密算法
 var $salt = '^ThisisEmliceChat$';           // 简单的静态加盐
 
 // 静态资源服务器地址配置
@@ -47,9 +46,8 @@ app.post( api + '/login',function(req,res) {
     });
     req.on('end', function() {
         var parseStr = JSON.parse(str);
-        // 加密测试
-        sha1.update($salt + parseStr.pwd);
-        var sha1Res = sha1.digest('hex');
+        // 使用 sha1 加密算法
+        var sha1Res = crypto.createHash('sha1').update($salt + parseStr.pwd).digest('hex');
         parseStr.pwd = sha1Res;
         User.findOne(parseStr, function(err, result) {
             if(err) throw err;
@@ -102,11 +100,8 @@ app.post( api + '/register', function(req, res) {
         var query = User.findOne({name: parseStr.name});
         query.exec(function(err,person) {
             if(err) throw err;
-            if(person == null) {
-                // 密码 sha1 加密测试
-                const pwdText = parseStr.pwd;
-                sha1.update($salt + pwdText);
-                var sha1Res = sha1.digest('hex');
+            if(person == null) {// 使用 sha1 加密算法
+                var sha1Res = crypto.createHash('sha1').update($salt + parseStr.pwd).digest('hex');
                 parseStr.pwd = sha1Res;
                 var user = new User(parseStr);
                 user.save();
