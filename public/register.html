@@ -71,10 +71,19 @@
                 var c = res.data.Code;
                 if (c === 0) {
                     // 注册成功
+                    var userData = {
+                    	name: name,
+                    	avatar: "http://static.emlice.top/images/users/default.png",
+                    	sex: 'male',
+                    	birthday: '2017-10-25',
+                    	place: '',
+                    	website: '',
+                    	github: '',
+                    	qq: '',
+                    }
                     layer.msg('注册成功, 即将自动跳转。');
                     setTimeout(function () {
-                        localStorage.setItem('UserName', name);
-                        localStorage.setItem('UserAvatar', "http://static.emlice.top/images/users/default.png");
+                        localStorage.setItem('UserInfo', JSON.stringify(userData));
                         localStorage.setItem('Duration', 1);
                         location.href = '/';
                     }, 1000);
