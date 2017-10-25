@@ -11,6 +11,7 @@ const BASE_URL = 'http://localhost:8989';                         // 本地测�
 // const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
+const USER_INFO_EDIT = '/api/userEdit';                         // 用户信息上传
 const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';
 const WEB_SITE = 'https://www.emlice.top';
 
@@ -398,6 +399,14 @@ Date.prototype.format = function (fmt) {
 function noticeProcess(param) {
     var t = param.charAt(0);
     if (t === '#') {
+        var query = param.substr(1);
+        var baidu_idx;
+        baidu.some((item, index) => {
+            if (item === query) {
+                baidu_idx = index;
+            }
+        });
+        if(baidu_idx === undefined) return param;
         return `[表情]`;
     } else if (t === '%') {
         return `[图片]`;
@@ -534,7 +543,7 @@ UserInfo.prototype = {
             };
             // 删除聊天窗口
             $('.chat-panel').remove();
-            console.log('重新渲染窗口')
+            // console.log('重新渲染窗口')
             // 重新渲染聊天窗口
             $body.append(components.chatPanel(dataObj, username));
 
@@ -672,7 +681,7 @@ UserInfo.prototype = {
     closeRoomPanel() {
         $('.roomInfoPanel').css('right', '-340px');
         $('.roomNoticePanel').css('right', '-340px');
-    }
+    },
 }
 window.userInfo = new UserInfo();
 
@@ -705,7 +714,7 @@ Connect.prototype = {
     },
     // 渲染消息
     renderMsg(res) {
-        console.log('渲染消息：', res);
+        // console.log('渲染消息：', res);
         var $messages = $('.message-list');
         // 判断当前窗口是否是会话窗花
         var p = $('.message-list').parents('.chat-panel').attr('chat-type');
@@ -713,11 +722,11 @@ Connect.prototype = {
             if (parseInt(i) === res.length - 1) {
                 // 渲染时间和消息
                 if (res[i].to === 'all') {
-                    console.log('提示群聊消息咯');
+                    // console.log('提示群聊消息咯');
                     $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
                     $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm')));
                 } else {
-                    console.log('提示私聊消息咯');
+                    // console.log('提示私聊消息咯');
                     $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
                     $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm')));
                     $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
@@ -745,6 +754,13 @@ Connect.prototype = {
                             baidu_idx = index;
                         }
                     });
+                    if(baidu_idx === undefined) {
+                        return `
+                            <div class="text">
+                                ${param}
+                            </div>
+                        `;
+                    }
                     return `
                         <div class="text">
                             <img class="expression-default-message" src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" style="background-position: left -${baidu_idx * baidu_space}px; background-image: url(${baidu_address})" onerror="this.style.display='none'">
@@ -801,8 +817,9 @@ Connect.prototype = {
             }
 
         }
+        if($('.postbird-img-glass-box') !== undefined) $('.postbird-img-glass-box').remove();
         // 图片放大
-        PostbirdImgGlass.init({
+        Glasses.init({
             domSelector: '.native-message .image img',
             animation:true
         });
@@ -855,7 +872,6 @@ var imgReader = function (item) {
         layer.msg('请截图重新上传~');
         return;
     }
-    console.log(blob);
     var param = new FormData();
     param.append("ps", blob);
     axios({
@@ -866,7 +882,6 @@ var imgReader = function (item) {
             "Content-Type": "multipart/form-data"
         }
     }).then(res => {
-        console.log(res);
         var Code = res.data.Code;
         var Str  = res.data.Str;
         if(Code === 0) {
@@ -905,7 +920,7 @@ $win.on('paste', '.input-box input', function (e) {
 
 // render message
 socket.on('message', function (res) {
-    console.log('接受消息并打印, 准备送往渲染工厂：', res);
+    // console.log('接受消息并打印, 准备送往渲染工厂：', res);
 
     /**
      *  from 来自谁的消息
@@ -934,7 +949,6 @@ socket.on('message', function (res) {
             c.myUserListArr.all.noRead++;
         } else {                     // 私聊频道
             if (res[0].to !== 'all' && res[0].from !== c.username && e !== res[0].from) {
-                console.log('捕获错误', c.myUserListArr[res[0].from]);
                 c.myUserListArr[res[0].from] === undefined ? c.myUserListArr[res[0].from] = { noRead: 1 } : c.myUserListArr[res[0].from].noRead++;
             }
         }
@@ -951,7 +965,6 @@ socket.on('message', function (res) {
 
 
 
-    console.log(c.myUserListArr);
 
     // 渲染未读消息气泡
     $('.user-list-item').each(function () {
@@ -1003,10 +1016,25 @@ socket.on('message', function (res) {
 // 接受历史记录
 socket.on('take messages', function (data) {
     if (data.length !== 0) {
-        console.log('调取离线记录：', data);
+        // console.log('调取离线记录：', data);
         c.renderMsg(data);
     }
 });
+
+
+// 接受用户状态
+socket.on('checkUser', function(data) {
+    var Code = data.Code;
+    var Str  = data.Str;
+    if(Code === -1) {
+        layer.msg(Str);
+        setTimeout(() => {
+            location.href = "/register";
+        }, 2000);
+    }
+});
+
+
 
 
 
@@ -1046,8 +1074,12 @@ App.prototype = {
             c.username = userName;
             c.userAvatar = userAvatar;
             c.duration = duration;
-            c.usernameEmit(userName);
+            c.usernameEmit(userName);           // 发送服务端注册用户 socket
+            this.DBcheckUserState(userName);    // 检查用户状态
         }
+    },
+    DBcheckUserState(user) {                // 数据库检查用户是否存在
+        socket.emit('checkUser', user);     // 向服务端发送请求检查用户状态
     },
     logout() {          // 退出登录
         localStorage.removeItem('UserName');
@@ -1067,7 +1099,7 @@ App.prototype = {
                                 <span>github:</span>
                                 <span>qq:</span>
                             </div>
-                            <div>
+                            <div id="personInfoBox">
                                 <select>
                                     <option value="male">男</option>
                                     <option value="female">女</option>
@@ -1081,7 +1113,7 @@ App.prototype = {
                         </div>
                     </div>
                     <div>
-                        <button>确定</button>
+                        <button id="editPersonInfo">确定</button>
                     </div>
                 </div>
             `;
@@ -1110,6 +1142,29 @@ App.prototype = {
                     </div>
                 </div>
             `;
+            var $personInfoBox = $('#personInfoBox');
+            var sex = $personInfoBox.find('select').val();
+            var birthday = $personInfoBox.find('input[type=date]').val();
+            var place = $personInfoBox.find('input[type=text]:eq(0)').val();
+            var website = $personInfoBox.find('input[type=url]:eq(0)').val();
+            var github = $personInfoBox.find('input[type=url]:eq(1)').val();
+            var qq = $personInfoBox.find('input[type=text]:eq(1)').val();
+            var userData = {
+                name: window.c.username,
+                sex: sex,
+                birthday: birthday,
+                place: place,
+                website: website,
+                github: github,
+                qq: github
+            }
+            axios({
+                method: 'POST',
+                url: USER_INFO_EDIT,
+                data: userData
+            }).then(res => {
+                console.log(res);
+            });
             $('.user-setting').find('.edit-status').remove().end().append(Panel_html);
         }
     },
@@ -1142,6 +1197,10 @@ App.prototype = {
         });
         $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function (e) {
             var t = $(this)[0].files[0];
+            if(t.size > 1.5 * 1024 * 1024) {
+                layer.msg('图片太大, 请压缩后重新上传~');
+                return;
+            }
             var param = new FormData();
             param.append("avatar", t);
             param.append("avatarName", c.username);
@@ -1215,7 +1274,6 @@ App.prototype = {
         // switch 开关
         $('.system-setting .switchBtn').on('click', function (e) {
             var t = $(this).siblings('span').text();
-            console.log(t);
             var f = $(this).hasClass('off');
             if (f) {
                 $(this).removeClass('off').addClass('on');
@@ -1270,7 +1328,7 @@ App.prototype = {
             // 清除该用户下的未读消息
             var u = $(this).attr('data-user');
             c.myUserListArr[u].noRead = 0;
-            console.log(c.myUserListArr);
+            // console.log(c.myUserListArr);
             $(this).find('.unread').text(c.myUserListArr[u].noRead);
 
             var dataUserPanel = $(this).attr('data-user');
@@ -1308,5 +1366,3 @@ App.prototype = {
 }
 
 app = new App();
-
-

@@ -15,8 +15,8 @@ var crypto = require('crypto');
 var $salt = '^ThisisEmliceChat$';           // 简单的静态加盐
 
 // 静态资源服务器地址配置
-// var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
-var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
+var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
+// var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
 
 
 // 配置登录逻辑
@@ -124,6 +124,27 @@ app.post( api + '/register', function(req, res) {
                     Data: "账号已存在!"
                 });
                 res.send(JSON.stringify(c));
+            }
+        });
+    });
+});
+
+
+// 用户信息上传
+app.post(api + '/userEdit', function(req, res) {
+    var str = '';
+    req.on('data', function(chunk) {
+        str += chunk;
+    });
+    req.on('end', function() {
+        var parseStr = JSON.parse(str);
+        var query = { name: parseStr.name };
+        User.findOne(query, function(err,result) {
+            if(err) throw err;
+            if(result == null) {
+
+            } else {
+                
             }
         });
     });

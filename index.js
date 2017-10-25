@@ -21,6 +21,8 @@ require('./server/connect.js');
 require('./server/model.js');
 // 获取 messages 集合并指向 Messages 
 var Messages = mongoose.model('messages');
+// User 为 model name
+var User = mongoose.model('users');    
 
 
 
@@ -51,6 +53,7 @@ io.on('connection', function(socket) {
     socket.on('message', function(res) {
         console.log(res);
         // 把消息保存到数据库
+        msg.date = Date.now();
         var msg = new Messages(res);
         msg.save();
 
@@ -100,6 +103,19 @@ io.on('connection', function(socket) {
             });
         }
         
+    });
+
+    // 用户状态检查
+    socket.on('checkUser', function(res) {
+        var query = { name: res };
+        User.findOne(query, function(err, result) {
+            if(err) throw err;
+            if(result === null) {
+                users[res].emit('checkUser', {Code: -1, Str: '数据库已更新, 请重新注册登录~'});
+            } else {
+                users[res].emit('checkUser', {Code: 0, Str: '用户状态正常~'});
+            }
+        });
     });
 
 });

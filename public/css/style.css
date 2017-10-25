@@ -2051,3 +2051,7 @@ header {
     padding-left: 8px; 
     float: right;
 }
+
+.postbird-img-glass-box img {
+    transform-origin: center center;
+}

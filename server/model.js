@@ -7,7 +7,13 @@ var UserSchema = new mongoose.Schema({  // 定义数据模型
     name: String,
     pwd: String,
     avatar: String,
-    date: Number
+    date: Number,
+    sex: String,
+    birthday: String,
+    place: String,
+    website: String,
+    github: String,
+    qq: String
 });
 mongoose.model('users', UserSchema);       // 将该 Schema 发布为 Model, 第一个参数为数据库的集合, 没有会自动创建
 
