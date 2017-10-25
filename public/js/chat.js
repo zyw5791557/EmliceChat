@@ -7,8 +7,8 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
-// const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+// const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
+const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
 const USER_INFO_EDIT = '/api/userEdit';                         // 用户信息上传
@@ -692,6 +692,12 @@ function Connect() {
     this.username = '';         // 我的连接账号即用户名
     this.userAvatar = '';       // 用户头像
     this.duration = '';         // 用户时长
+    this.sex = '';              // 性别
+    this.birthday = '';         // 出生日期
+    this.place = '';            // 位置
+    this.website = '';          // 站点
+    this.github = '';           // github
+    this.qq = '';               // QQ
     this.myUserListArr = {      // 我的临时会话集合
         all: {
             noRead: 0
@@ -1052,6 +1058,7 @@ App.prototype = {
         this.eventListeners();
         this.checkSetting();
         this.avatarSetting();
+        this.updateUserWebsite();
     },
     updateUserInfo(obj) {       // 更新用户信息
         // 右上角
@@ -1060,19 +1067,49 @@ App.prototype = {
         $('.user-setting .background-image').css('background-image', 'url(' + window.c.userAvatar + ')');
         $('.user-setting .avatar-image').attr('src', window.c.userAvatar);
         $('.user-setting .avatar-image').siblings('span').text(window.c.username);
+        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(0)').text(window.c.sex === 'male' ? '男' : '女');
+        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(1)').text((new Date().getFullYear() - new Date(window.c.birthday).getFullYear() <= 0 ? '1' : new Date().getFullYear() - new Date(window.c.birthday).getFullYear()));
         $('.user-setting .normal-status div div div:eq(1)').find('span:eq(2)').text(window.c.duration + '天');
+        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(3)').text(window.c.place);
+
+    },
+    updateUserWebsite() {       // 更新用户站点
+        var github = window.c.github === '' ? '' : `<a class="icon" title="github" href="//${window.c.github}" rel="noopener noreferrer" target="_blank"></a>`;
+        var website = window.c.website === '' ? '' : `<a class="icon" title="website"
+        href="//${window.c.website}" rel="noopener noreferrer" target="_blank" style="position: relative; top: 3px;"></a>`;
+        var qq = window.c.qq === '' ? '' : `<a class="icon"
+        title="qq" href="tencent://message/?uin=${window.c.qq}" rel="noopener noreferrer" target="_blank"></a>`;
+        var oHtml = `
+            ${github}
+            ${website}
+            ${qq}
+        `;
+        $('.user-setting .icon-list').empty().append(oHtml);
     },
     checkLogin() {      // 登录状态监测
-        var userName = localStorage.getItem('UserName');
-        var userAvatar = localStorage.getItem('UserAvatar');
+        var ConnectUserInfo = JSON.parse(localStorage.getItem('UserInfo'));
+        var userName = ConnectUserInfo.name;
+        var userAvatar = ConnectUserInfo.avatar;
+        var userSex = ConnectUserInfo.sex;
+        var userBirthday = ConnectUserInfo.birthday;
+        var userPlace = ConnectUserInfo.place;
+        var userWebsite = ConnectUserInfo.website;
+        var userGithub = ConnectUserInfo.github;
+        var userQq = ConnectUserInfo.qq;
         var duration = localStorage.getItem('Duration');
-        if (userName === null || userName === undefined) {
+        if (ConnectUserInfo === null || ConnectUserInfo === undefined) {
             location.href = '/login';
         } else {
             // 初始化连接
             c = new Connect();
             c.username = userName;
             c.userAvatar = userAvatar;
+            c.sex = userSex;
+            c.birthday = userBirthday;
+            c.website = userWebsite;
+            c.place = userPlace;
+            c.github = userGithub;
+            c.qq = userQq;
             c.duration = duration;
             c.usernameEmit(userName);           // 发送服务端注册用户 socket
             this.DBcheckUserState(userName);    // 检查用户状态
@@ -1082,7 +1119,7 @@ App.prototype = {
         socket.emit('checkUser', user);     // 向服务端发送请求检查用户状态
     },
     logout() {          // 退出登录
-        localStorage.removeItem('UserName');
+        localStorage.removeItem('UserInfo');
         location.href = '/login';
     },
     editUserInfo(f) {    // 编辑用户信息
@@ -1100,15 +1137,15 @@ App.prototype = {
                                 <span>qq:</span>
                             </div>
                             <div id="personInfoBox">
-                                <select>
+                                <select>    
                                     <option value="male">男</option>
                                     <option value="female">女</option>
                                 </select>
-                                <input type="date" value="2016-09-11">
-                                <input type="text" value="">
-                                <input type="url" value="">
-                                <input type="url" value="">
-                                <input type="text" value="">
+                                <input class="birthday" type="date" value="${window.c.birthday}">
+                                <input class="place" type="text" value="${window.c.place}">
+                                <input class="website" type="url" placeholder="不用写传输协议头" value="${window.c.website}">
+                                <input class="github" type="url" placeholder="不用写传输协议头" value="${window.c.github}">
+                                <input class="qq" type="text" value="${window.c.qq}">
                             </div>
                         </div>
                     </div>
@@ -1118,37 +1155,47 @@ App.prototype = {
                 </div>
             `;
             $('.user-setting').find('.normal-status').remove().end().append(Edit_html);
+            $('.edit-status #personInfoBox select').val(window.c.sex);
         } else {
-            var Panel_html = `
-                <div class="normal-status">
-                    <div>
+
+            function panelHtml() {
+                var Panel_html = `
+                    <div class="normal-status">
                         <div>
                             <div>
-                                <span>性别:</span>
-                                <span>年龄:</span>
-                                <span>时长:</span>
-                                <span>位置:</span>
-                            </div>
-                            <div>
-                                <span>男</span>
-                                <span>1</span>
-                                <span>32天</span>
-                                <span>火星</span>
+                                <div>
+                                    <span>性别:</span>
+                                    <span>年龄:</span>
+                                    <span>时长:</span>
+                                    <span>位置:</span>
+                                </div>
+                                <div>
+                                    <span>${window.c.sex === 'male' ? '男' : '女'}</span>
+                                    <span>${(new Date().getFullYear() - new Date(window.c.birthday).getFullYear() <= 0 ? '1' : new Date().getFullYear() - new Date(window.c.birthday).getFullYear())}</span>
+                                    <span>${window.c.duration}天</span>
+                                    <span>${window.c.place === '' ? '火星' : window.c.place}</span>
+                                </div>
                             </div>
                         </div>
+                        <div>
+                            <button>编辑</button>
+                        </div>
                     </div>
-                    <div>
-                        <button>编辑</button>
-                    </div>
-                </div>
-            `;
+                `;
+                $('.user-setting').find('.edit-status').remove().end().append(Panel_html);
+            }
+
             var $personInfoBox = $('#personInfoBox');
             var sex = $personInfoBox.find('select').val();
-            var birthday = $personInfoBox.find('input[type=date]').val();
-            var place = $personInfoBox.find('input[type=text]:eq(0)').val();
-            var website = $personInfoBox.find('input[type=url]:eq(0)').val();
-            var github = $personInfoBox.find('input[type=url]:eq(1)').val();
-            var qq = $personInfoBox.find('input[type=text]:eq(1)').val();
+            var birthday = $personInfoBox.find('.birthday').val();
+            var place = $personInfoBox.find('.place').val();
+            var website = $personInfoBox.find('.website').val();
+            var github = $personInfoBox.find('.github').val();
+            var qq = $personInfoBox.find('.qq').val();
+            if(sex === window.c.sex && birthday === window.c.birthday && place === window.c.place && website === window.c.website && github === window.c.github && qq === window.c.qq) {
+                panelHtml();
+                return;
+            }
             var userData = {
                 name: window.c.username,
                 sex: sex,
@@ -1156,16 +1203,34 @@ App.prototype = {
                 place: place,
                 website: website,
                 github: github,
-                qq: github
+                qq: qq
             }
             axios({
                 method: 'POST',
                 url: USER_INFO_EDIT,
                 data: userData
             }).then(res => {
-                console.log(res);
+                var Code = res.data.Code;
+                var Str = res.data.Str;
+                layer.msg(Str);
+                if(Code === -1) {
+                    setTimeout(() => {
+                        location.href = '/login';
+                    },2000);
+                } else if(Code === 0) {
+                    // 成功
+                    console.log(res);
+                    var localData = JSON.parse(localStorage.getItem('UserInfo'));
+                    for(var i in res.data.Data) {
+                        window.c[i] = res.data.Data[i];
+                        localData[i] = res.data.Data[i];
+                    }
+                    localStorage.setItem('UserInfo', JSON.stringify(localData));
+                    panelHtml();
+                    window.app.updateUserWebsite();
+                }
             });
-            $('.user-setting').find('.edit-status').remove().end().append(Panel_html);
+            
         }
     },
     checkSetting() {        // 检查用户设置 初始化
@@ -1218,7 +1283,9 @@ App.prototype = {
                 if (c === 0) {
                     // 更改本地存贮
                     window.c.userAvatar = a;
-                    localStorage.setItem('UserAvatar', a);
+                    var ConnectUserInfo = JSON.parse(localStorage.getItem('UserInfo'));
+                    ConnectUserInfo.avatar = a;
+                    localStorage.setItem('UserInfo', JSON.stringify(ConnectUserInfo));
                     _this.updateUserInfo();
                     // 文件上传成功
                     layer.msg(s);

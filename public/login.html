@@ -16,8 +16,7 @@
             <div class="login">
                 <div>
                     <div>
-                        <img class="avatar-image" src="./images/user.jpg"
-                            style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
+                        <img class="avatar-image" src="./images/user.jpg" style="width: 100px; height: 100px; min-width: 100px; min-height: 100px;">
                     </div>
                     <div>
                         <span style="position: relative; top: -4px;">滴滴,学生卡~</span>
@@ -46,13 +45,13 @@
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdn.bootcss.com/layer/3.0.3/layer.js"></script>
     <script src="https://cdn.bootcss.com/axios/0.16.2/axios.min.js"></script>
-    
+
     <script>
         // 登录
-        
+
         var api = '/api/login';
 
-        $('#loginBtn').on('click', function() {
+        $('#loginBtn').on('click', function () {
             var name = $('#name').val();
             var pwd = $('#pwd').val();
             axios({
@@ -66,24 +65,29 @@
                 var c = res.data.Code;
                 var avatar = res.data.avatar;
                 var h = res.data.duration;
-                if(c === 0) {
+                if (c === 0) {
                     // 登录成功
                     console.log(res);
-                    localStorage.setItem('UserName', name);
-                    localStorage.setItem('UserAvatar', avatar);
-                    localStorage.setItem('Duration', h); // 时长
+                    localStorage.setItem('UserInfo', JSON.stringify(res.data.Data));
+                    localStorage.setItem('Duration', h);
                     location.href = '/';
-                }else if(c === -1) {
+                } else if (c === -1) {
                     // 账号或密码错误!
-                    layer.msg('账号或密码错误!',{offset: '30px', icon:7});  
+                    layer.msg('账号或密码错误!', {
+                        offset: '30px',
+                        icon: 7
+                    });
                 }
             }).catch(err => {
-                layer.msg('登录失败, 请检查网络连接是否正常。',{offset: '30px', icon:7});  
+                layer.msg('登录失败, 请检查网络连接是否正常。', {
+                    offset: '30px',
+                    icon: 7
+                });
             });
         });
 
         //   跳转注册窗口
-        $('#registerBtn').on('click', function() {
+        $('#registerBtn').on('click', function () {
             location.href = "/register";
         });
     </script>

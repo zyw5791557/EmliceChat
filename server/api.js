@@ -15,8 +15,8 @@ var crypto = require('crypto');
 var $salt = '^ThisisEmliceChat$';           // 简单的静态加盐
 
 // 静态资源服务器地址配置
-var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
-// var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
+// var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
+var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
 
 
 // 配置登录逻辑
@@ -68,10 +68,18 @@ app.post( api + '/login',function(req,res) {
                 loginState.save();
                 // 记录时长
                 var duration = Math.ceil((date - result.date) / (1000 * 60 * 60 * 24));     // 向上取整
+                var s = {};
+                for(var i in result) {
+                    var arr = ['name', 'avatar', 'date', 'sex', 'birthday', 'website', 'place', 'github', 'qq'];
+                    if(arr.indexOf(i) !== -1) {
+                        console.log(i)
+                        s[i] = result[i];
+                    }
+                }
+                console.log(s);
                 var c = new PostCallbackData({
                     Code: 0,
-                    Data: "登录成功!",
-                    avatar: result.avatar,
+                    Data: s,
                     duration: duration
                 });
                 res.send(JSON.stringify(c));
@@ -142,9 +150,24 @@ app.post(api + '/userEdit', function(req, res) {
         User.findOne(query, function(err,result) {
             if(err) throw err;
             if(result == null) {
-
+                res.send({ Code: -1, Str: '数据库变更, 请重新登录!' });
             } else {
-                
+                console.log(result);
+                var newVal = { $set: {
+                    sex: parseStr.sex,
+                    birthday: parseStr.birthday,
+                    place: parseStr.place,
+                    website: parseStr.website,
+                    github: parseStr.website,
+                    qq: parseStr.qq
+                } };
+                User.update(query, newVal, function(err, rres) {
+                    if(err) {
+                        res.send({ Code: -2, Str: '用户信息修改失败, 请刷新重新尝试!' });
+                    } else {
+                        res.send({ Code: 0, Str: '用户信息修改成功!', Data: parseStr });
+                    }
+                });
             }
         });
     });
