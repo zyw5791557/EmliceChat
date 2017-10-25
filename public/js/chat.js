@@ -1088,18 +1088,18 @@ App.prototype = {
     },
     checkLogin() {      // 登录状态监测
         var ConnectUserInfo = JSON.parse(localStorage.getItem('UserInfo'));
-        var userName = ConnectUserInfo.name;
-        var userAvatar = ConnectUserInfo.avatar;
-        var userSex = ConnectUserInfo.sex;
-        var userBirthday = ConnectUserInfo.birthday;
-        var userPlace = ConnectUserInfo.place;
-        var userWebsite = ConnectUserInfo.website;
-        var userGithub = ConnectUserInfo.github;
-        var userQq = ConnectUserInfo.qq;
-        var duration = localStorage.getItem('Duration');
         if (ConnectUserInfo === null || ConnectUserInfo === undefined) {
             location.href = '/login';
         } else {
+            var userName = ConnectUserInfo.name;
+            var userAvatar = ConnectUserInfo.avatar;
+            var userSex = ConnectUserInfo.sex;
+            var userBirthday = ConnectUserInfo.birthday;
+            var userPlace = ConnectUserInfo.place;
+            var userWebsite = ConnectUserInfo.website;
+            var userGithub = ConnectUserInfo.github;
+            var userQq = ConnectUserInfo.qq;
+            var duration = localStorage.getItem('Duration');
             // 初始化连接
             c = new Connect();
             c.username = userName;
