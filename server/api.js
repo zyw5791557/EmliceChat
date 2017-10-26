@@ -15,8 +15,8 @@ var crypto = require('crypto');
 var $salt = '^ThisisEmliceChat$';           // 简单的静态加盐
 
 // 静态资源服务器地址配置
-// var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
-var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
+var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
+// var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
 
 
 // 配置登录逻辑

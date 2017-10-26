@@ -7,8 +7,8 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-// const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
-const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
+// const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
 const USER_INFO_EDIT = '/api/userEdit';                         // 用户信息上传
@@ -251,36 +251,17 @@ MyComponents.prototype = {
                     <span>无</span></div>
                 <div class="content">
                     <span>在线人数：</span>
-                    <span>
-                        <!-- react-text: 1666 -->${dataObj.float.peoples}
-                        <!-- /react-text -->
-                        <!-- react-text: 1667 -->人
-                        <!-- /react-text --></span></div>
+                    <span class="onlinePeoples">${dataObj.float.peoples}人</span>
+                </div>
                 <div class="userList">
                     <div>
                         <div class="avatar-text" style="background-color: forestgreen; width: 40px; height: 40px; font-size: 16px; min-width: 40px; min-height: 40px;">碎</div>
-                        <span>碎碎酱</span></div>
-                    <div>
-                        <div class="avatar-text" style="background-color: darkmagenta; width: 40px; height: 40px; font-size: 16px; min-width: 40px; min-height: 40px;">r</div>
-                        <span>robot10</span></div>
+                        <span>碎碎酱</span>
+                    </div>
                     <div>
                         <img class="avatar-image" src="https://cdn.suisuijiang.com/user_592243028cd75f2f076dfeef_1504508859571.png?imageView2/2/w/40/h/40" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
-                        <span>blackmiaool</span></div>
-                    <div>
-                        <img class="avatar-image" src="https://cdn.suisuijiang.com/user_5966cf3d49335047b16adae8_1504799624203.jpeg?imageView2/2/w/40/h/40" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
-                        <span>1111111111</span></div>
-                    <div>
-                        <div class="avatar-text" style="background-color: deepskyblue; width: 40px; height: 40px; font-size: 16px; min-width: 40px; min-height: 40px;">t</div>
-                        <span>twf</span></div>
-                    <div>
-                        <img class="avatar-image" src="https://cdn.suisuijiang.com/user_598bbd2c2f06e960f246f07a_1505123087661.png?imageView2/2/w/40/h/40" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
-                        <span>shazidama</span></div>
-                    <div>
-                        <img class="avatar-image" src="https://cdn.suisuijiang.com/user_59b5e4563a453b067878c989_1505119796105.jpeg?imageView2/2/w/40/h/40" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
-                        <span>Emlice</span></div>
-                    <div>
-                        <div class="avatar-text" style="background-color: darkseagreen; width: 40px; height: 40px; font-size: 16px; min-width: 40px; min-height: 40px;">f</div>
-                        <span>ff</span></div>
+                        <span>blackmiaool</span>
+                    </div>
                 </div>
                 <input type="file" accept="image/*"></div>
             <div class="group-info-exit">
@@ -557,7 +538,7 @@ UserInfo.prototype = {
                     username: ''
                 },
                 float: {
-                    peoples: 2
+                    peoples: window.c.onlinePeoples
                 }
             };
             // 删除聊天窗口
@@ -721,6 +702,7 @@ function Connect() {
         qq:'',               // QQ
 
     };
+    onlinePeoples: '',        // 在线人数
     this.myUserListArr = {      // 我的临时会话集合
         all: {
             noRead: 0
@@ -748,7 +730,7 @@ Connect.prototype = {
     },
     // 渲染消息
     renderMsg(res) {
-        console.log('渲染消息：', res);
+        // console.log('渲染消息：', res);
         var $messages = $('.message-list');
         // 判断当前窗口是否是会话窗花
         var p = $('.message-list').parents('.chat-panel').attr('chat-type');
@@ -1078,10 +1060,21 @@ socket.on('checkUser', function (data) {
     var Str = data.Str;
     if (Code === -1) {
         layer.msg(Str);
+        localStorage.removeItem('UserInfo');
         setTimeout(() => {
             location.href = "/register";
         }, 2000);
     }
+});
+
+// 接受在线人数
+socket.on('user join', function(res) {
+    // 修改在线人数
+    window.c.onlinePeoples = res.length;
+    if($('.onlinePeoples').length !== 0) {
+        $('.onlinePeoples').text(res.length + '人');
+    }
+    console.log(res);
 });
 
 
@@ -1449,7 +1442,7 @@ App.prototype = {
             if (dataUserPanel === f) return;
             $('.chat-panel').remove();
             // 如果 $empty 存在就删掉它
-            $empty && $empty.remove() && $('.lyric_content').show();
+            $empty && $empty.remove() && $('.lyric_content').show(); 
             var dataObj = {
                 com: {
                     avatar: dataUserPanel === 'all' ? '/images/sleep.gif' : avatar,
@@ -1460,7 +1453,7 @@ App.prototype = {
                     username: ''
                 },
                 float: {
-                    peoples: 0
+                    peoples: window.c.onlinePeoples
                 }
             };
             $body.append(components.chatPanel(dataObj, dataUserPanel));

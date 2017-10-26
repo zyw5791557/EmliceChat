@@ -42,6 +42,17 @@ io.on('connection', function(socket) {
     socket.on('user join', function(user) {
         username = user;
         users[user] = socket;
+        console.log(Object.keys(users));
+        // User.find({}, { name: 1, avatar: 1 }, function(err,result) {
+        //     if(err) throw err;
+        //     console.log(result);
+        //     if(result === null) {
+
+        //     }else {
+                
+        //     }
+        // });
+        // io.emit('user join', );
     });
 
     socket.on('disconnect', function() {
