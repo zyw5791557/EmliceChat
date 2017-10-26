@@ -2055,3 +2055,7 @@ header {
 .postbird-img-glass-box img {
     transform-origin: center center;
 }
+
+img[src="/images/imgError.jpg"] {
+    max-height: 100px!important;
+}

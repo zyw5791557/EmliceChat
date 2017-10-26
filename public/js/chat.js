@@ -7,8 +7,8 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-// const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
-const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
+// const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
 const USER_INFO_EDIT = '/api/userEdit';                         // 用户信息上传
@@ -16,8 +16,7 @@ const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';
 const WEB_SITE = 'https://www.emlice.top';
 
 // 表情配置表
-// const baidu_address = BASE_URL + '/images/expressions/baidu.png';    // 本地测试服务器
-const baidu_address = BASE_URL + '/images/expressions/baidu.png';		// 线上服务器
+const baidu_address = BASE_URL + '/images/expressions/baidu.png';		// 百度表情地址
 const baidu = [
     '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
     '鄙视', '不高兴', '真棒', '钱', '疑问', '阴险', '吐', '咦', '委屈', '花心',
@@ -406,7 +405,7 @@ function noticeProcess(param) {
                 baidu_idx = index;
             }
         });
-        if(baidu_idx === undefined) return param;
+        if (baidu_idx === undefined) return param;
         return `[表情]`;
     } else if (t === '%') {
         return `[图片]`;
@@ -422,7 +421,7 @@ function noticeProcess(param) {
 //     var dataUserPanel = $('.chat-panel').attr('chat-type');
 //     if ($this.scrollTop() <= 0) {
 //         c.takeMsg({
-//             from: c.username,
+//             from: window.c.userAllInfo.username,
 //             take: dataUserPanel,
 //             addPage: 1
 //         });
@@ -455,27 +454,47 @@ UserInfo.prototype = {
             if (uif === false) return;
             _this.userInfoFlag = false;
             var src = $(this).attr('src');
-            var username = $(this).attr('data-username');
+            var userPanelData = JSON.parse($(this).attr('data-userPanelData'));         // 用户名片
             var f = $('.chat-panel').attr('chat-type');
-            if (username === c.username || f !== 'all') return;
+            if (userPanelData.username === window.c.userAllInfo.username || f !== 'all') return;
+            // 插入链接
+            var github = (userPanelData.github === '' || userPanelData.github === undefined) ? '' : `<a class="icon" title="github" href="//${userPanelData.github}" rel="noopener noreferrer" target="_blank"></a>`;
+            var website = (userPanelData.website === '' || userPanelData.website === undefined) ? '' : `<a class="icon" title="website"
+            href="//${userPanelData.website}" rel="noopener noreferrer" target="_blank" style="position: relative; top: 3px;"></a>`;
+            var qq = (userPanelData.qq === '' || userPanelData.qq === undefined) ? '' : `<a class="icon"
+            title="qq" href="tencent://message/?uin=${userPanelData.qq}" rel="noopener noreferrer" target="_blank"></a>`;
+    
             var commonHtml = `
             <div><i class="icon"></i>
                 <div class="background-image" style="background-image: url(/images/b.jpg);"></div>
                 <div class="background-mask"></div>
-                <div class="content"><img class="avatar-image" src="${src}"
-                        style="width: 80px; height: 80px; min-width: 80px; min-height: 80px;"><span>${username}</span>
-                    <div
-                        class="icon-list"></div>
+                <div class="content"><img class="avatar-image" src="${userPanelData.userAvatar}"
+                        style="width: 80px; height: 80px; min-width: 80px; min-height: 80px;"><span>${userPanelData.username}</span>
+                    <div class="icon-list">
+                        ${github}
+                        ${website}
+                        ${qq}
+                    </div>
                 </div>
             </div>
             <div class="normal-status">
                 <div>
                     <div>
-                        <div><span>性别:</span><span>年龄:</span><span>时长:</span><span>位置:</span></div>
-                        <div><span>男</span><span>23</span><span>未知</span><span>地球</span></div>
+                        <div>
+                            <span>性别:</span>
+                            <span>年龄:</span>
+                            <span>时长:</span>
+                            <span>位置:</span>
+                        </div>
+                        <div>
+                            <span>${userPanelData.sex === 'male' ? '男' : '女'}</span>
+                            <span>${(new Date().getFullYear() - new Date(userPanelData.birthday).getFullYear()) <= 0 ? 1 : (new Date().getFullYear() - new Date(userPanelData.birthday).getFullYear())}</span>
+                            <span>${userPanelData.duration}天</span>
+                            <span>${userPanelData.place === '' ? '火星' : userPanelData.place}</span>
+                        </div>
                     </div>
                 </div>
-                <div><button class="singleChatBtn" data-to="${username}" data-avatar="${src}">发起聊天</button></div>
+                <div><button class="singleChatBtn" data-to="${userPanelData.username}" data-avatar="${userPanelData.userAvatar}">发起聊天</button></div>
             </div>
             `;
             var $userInfoModel = $('.user-info');
@@ -549,7 +568,7 @@ UserInfo.prototype = {
 
             // 拉去记录
             c.takeMsg({
-                from: c.username,
+                from: window.c.userAllInfo.username,
                 take: username,
             });
 
@@ -607,8 +626,8 @@ UserInfo.prototype = {
             var to = $(this).parents('.chat-panel').attr('chat-type');
             var idx = $(this).index();
             var msg = {
-                from: window.c.username,
-                avatar: window.c.userAvatar,
+                from: window.c.userAllInfo.username,
+                avatar: window.c.userAllInfo.userAvatar,
                 to: to,
                 message: `#${baidu[idx]}`,
                 date: new Date().getTime()
@@ -689,15 +708,19 @@ var socket = io();
 
 // 连接实例
 function Connect() {
-    this.username = '';         // 我的连接账号即用户名
-    this.userAvatar = '';       // 用户头像
-    this.duration = '';         // 用户时长
-    this.sex = '';              // 性别
-    this.birthday = '';         // 出生日期
-    this.place = '';            // 位置
-    this.website = '';          // 站点
-    this.github = '';           // github
-    this.qq = '';               // QQ
+    // 用户所有消息集合
+    this.userAllInfo  = {
+        username:'',         // 我的连接账号即用户名
+        userAvatar:'',       // 用户头像
+        duration:'',         // 用户时长
+        sex:'',              // 性别
+        birthday:'',         // 出生日期
+        place:'',            // 位置
+        website:'',          // 站点
+        github:'',           // github
+        qq:'',               // QQ
+
+    };
     this.myUserListArr = {      // 我的临时会话集合
         all: {
             noRead: 0
@@ -708,19 +731,24 @@ function Connect() {
 Connect.prototype = {
     // 用户加入
     usernameEmit(username) {
-        var username = this.username;
+        var username = this.userAllInfo.username;
         socket.emit('user join', username);
-        $('.user-panel .avatar-text').css('background-image', 'url(' + this.userAvatar + ')');
+        $('.user-panel .avatar-text').css('background-image', 'url(' + this.userAllInfo.userAvatar + ')');
         $win.show();
         $('.input-box input').focus();
     },
     // 发送消息
     sendMsg(msg) {
+        var s = {};
+        for(var i in window.c.userAllInfo) {
+            s[i] = window.c.userAllInfo[i];
+        }
+        msg.userPanelData = JSON.stringify(s);
         socket.emit('message', msg);
     },
     // 渲染消息
     renderMsg(res) {
-        // console.log('渲染消息：', res);
+        console.log('渲染消息：', res);
         var $messages = $('.message-list');
         // 判断当前窗口是否是会话窗花
         var p = $('.message-list').parents('.chat-panel').attr('chat-type');
@@ -748,7 +776,7 @@ Connect.prototype = {
                     continue;
                 }
             }
-            var isMy = c.username == res[i].from ? true : false;
+            var isMy = window.c.userAllInfo.username == res[i].from ? true : false;
 
             function msgProcess(param) {
                 var t = param.charAt(0);
@@ -760,7 +788,7 @@ Connect.prototype = {
                             baidu_idx = index;
                         }
                     });
-                    if(baidu_idx === undefined) {
+                    if (baidu_idx === undefined) {
                         return `
                             <div class="text">
                                 ${param}
@@ -774,22 +802,39 @@ Connect.prototype = {
                     `;
                 } else if (t === '%') {
                     var imgSrc = param.substr(1);
-                    return `
-                        <div class="image">
-                            <img src="${imgSrc}" data-action="zoom" style="max-height: 200px;">
-                        </div>
-                    `;
-                } else {
-                    return `
+                    var f = imgSrc.match(/^(https?|ftp|file):\/\//g);
+                    if(f === null) {
+                        return `
                         <div class="text">
                             ${param}
                         </div>
+                        `;
+                    }
+                    return `
+                        <div class="image">
+                            <img src="${imgSrc}" onerror="this.src='/images/imgError.jpg'" style="max-height: 200px;">
+                        </div>
                     `;
+                } else {
+                    var FTA = param.match(/^(https?|ftp|file):\/\//g);
+                    if(FTA !== null) {
+                        return `
+                            <div class="text">
+                                <a href="${param}" rel="noopener noreferrer" target="_blank">${param}</a>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="text">
+                                ${param}
+                            </div>
+                        `;
+                    }
                 }
 
             }
             var commonHtml = `
-                    <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}">
+                    <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}"  data-userPanelData='${res[i].userPanelData !== undefined ? res[i].userPanelData : ""}'>
                     <div>
                         <div>
                             <span class="message-username">${res[i].from}</span>
@@ -821,13 +866,12 @@ Connect.prototype = {
                 if ($messages.length === 0) return;
                 $messages[0].scrollTop = $messages[0].scrollHeight;
             }
-
         }
-        if($('.postbird-img-glass-box') !== undefined) $('.postbird-img-glass-box').remove();
+        if ($('.postbird-img-glass-box') !== undefined) $('.postbird-img-glass-box').remove();
         // 图片放大
         Glasses.init({
             domSelector: '.native-message .image img',
-            animation:true
+            animation: true
         });
         /**
          * 创建 imagesLoaded 实例
@@ -856,8 +900,8 @@ $win.on('keydown', '.input-box input', function (e) {
     if (keys === 13 && m !== '') {      // 消息不得为空。
         var to = $(this).parents('.chat-panel').attr('chat-type');
         var msg = {
-            from: c.username,
-            avatar: c.userAvatar,
+            from: window.c.userAllInfo.username,
+            avatar: window.c.userAllInfo.userAvatar,
             to: to,
             message: m,
             date: new Date().getTime()
@@ -871,7 +915,7 @@ $win.on('keydown', '.input-box input', function (e) {
 
 var imgReader = function (item) {
     var blob = item.getAsFile();
-    if(blob !== null && blob.size > 1.5 * 1024 * 1024) {
+    if (blob !== null && blob.size > 1.5 * 1024 * 1024) {
         layer.msg('图片太大, 请压缩后重新上传~');
         return;
     } else if (blob === null) {
@@ -889,13 +933,13 @@ var imgReader = function (item) {
         }
     }).then(res => {
         var Code = res.data.Code;
-        var Str  = res.data.Str;
-        if(Code === 0) {
+        var Str = res.data.Str;
+        if (Code === 0) {
             var d = res.data.ps;
             var to = $body.find('.chat-panel').attr('chat-type');
             var msg = {
-                from: window.c.username,
-                avatar: window.c.userAvatar,
+                from: window.c.userAllInfo.username,
+                avatar: window.c.userAllInfo.userAvatar,
                 to: to,
                 message: `%${d}`,
                 date: new Date().getTime()
@@ -934,7 +978,7 @@ socket.on('message', function (res) {
 
     for (let i = 0; i < res.length; i++) {
         var f = $userList.find('.user-list-item[data-user=' + res[i].from + ']');
-        if (f.length === 0 && res[i].from !== c.username && res[i].to !== 'all') {
+        if (f.length === 0 && res[i].from !== window.c.userAllInfo.username && res[i].to !== 'all') {
             let o = {
                 to: res[i].from,
                 avatar: res[i].avatar
@@ -954,7 +998,7 @@ socket.on('message', function (res) {
         if (res[0].to == 'all' && e !== 'all') {    // 如果是发送去群聊频道切当前不在群聊频道
             c.myUserListArr.all.noRead++;
         } else {                     // 私聊频道
-            if (res[0].to !== 'all' && res[0].from !== c.username && e !== res[0].from) {
+            if (res[0].to !== 'all' && res[0].from !== window.c.userAllInfo.username && e !== res[0].from) {
                 c.myUserListArr[res[0].from] === undefined ? c.myUserListArr[res[0].from] = { noRead: 1 } : c.myUserListArr[res[0].from].noRead++;
             }
         }
@@ -963,7 +1007,7 @@ socket.on('message', function (res) {
         if (res[0].to == 'all' && e !== 'all') {    // 如果是发送去群聊频道切当前不在群聊频道
             c.myUserListArr.all.noRead++;
         } else {                     // 私聊频道
-            if (res[0].to !== 'all' && res[0].from !== c.username && e !== res[0].from) {
+            if (res[0].to !== 'all' && res[0].from !== window.c.userAllInfo.username && e !== res[0].from) {
                 c.myUserListArr[res[0].from] === undefined ? c.myUserListArr[res[0].from] = { noRead: 1 } : c.myUserListArr[res[0].from].noRead++;
             }
         }
@@ -979,7 +1023,7 @@ socket.on('message', function (res) {
 
     });
 
-    if (res[0].from !== c.username) {
+    if (res[0].from !== window.c.userAllInfo.username) {
         var d = JSON.parse(localStorage.getItem('desktopNotification'));
         var s = JSON.parse(localStorage.getItem('soundNotification'));
         if (s) {
@@ -1029,10 +1073,10 @@ socket.on('take messages', function (data) {
 
 
 // 接受用户状态
-socket.on('checkUser', function(data) {
+socket.on('checkUser', function (data) {
     var Code = data.Code;
-    var Str  = data.Str;
-    if(Code === -1) {
+    var Str = data.Str;
+    if (Code === -1) {
         layer.msg(Str);
         setTimeout(() => {
             location.href = "/register";
@@ -1062,23 +1106,23 @@ App.prototype = {
     },
     updateUserInfo(obj) {       // 更新用户信息
         // 右上角
-        $('.user-panel .avatar-text').css('background-image', 'url(' + window.c.userAvatar + ')');
+        $('.user-panel .avatar-text').css('background-image', 'url(' + window.c.userAllInfo.userAvatar + ')');
         // 用户设置区域
-        $('.user-setting .background-image').css('background-image', 'url(' + window.c.userAvatar + ')');
-        $('.user-setting .avatar-image').attr('src', window.c.userAvatar);
-        $('.user-setting .avatar-image').siblings('span').text(window.c.username);
-        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(0)').text(window.c.sex === 'male' ? '男' : '女');
-        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(1)').text((new Date().getFullYear() - new Date(window.c.birthday).getFullYear() <= 0 ? '1' : new Date().getFullYear() - new Date(window.c.birthday).getFullYear()));
-        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(2)').text(window.c.duration + '天');
-        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(3)').text(window.c.place);
+        $('.user-setting .background-image').css('background-image', 'url(' + window.c.userAllInfo.userAvatar + ')');
+        $('.user-setting .avatar-image').attr('src', window.c.userAllInfo.userAvatar);
+        $('.user-setting .avatar-image').siblings('span').text(window.c.userAllInfo.username);
+        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(0)').text(window.c.userAllInfo.sex === 'male' ? '男' : '女');
+        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(1)').text((new Date().getFullYear() - new Date(window.c.userAllInfo.birthday).getFullYear() <= 0 ? '1' : new Date().getFullYear() - new Date(window.c.userAllInfo.birthday).getFullYear()));
+        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(2)').text(window.c.userAllInfo.duration + '天');
+        $('.user-setting .normal-status div div div:eq(1)').find('span:eq(3)').text(window.c.userAllInfo.place === '' ? '火星' : window.c.userAllInfo.place);
 
     },
     updateUserWebsite() {       // 更新用户站点
-        var github = window.c.github === '' ? '' : `<a class="icon" title="github" href="//${window.c.github}" rel="noopener noreferrer" target="_blank"></a>`;
-        var website = window.c.website === '' ? '' : `<a class="icon" title="website"
-        href="//${window.c.website}" rel="noopener noreferrer" target="_blank" style="position: relative; top: 3px;"></a>`;
-        var qq = window.c.qq === '' ? '' : `<a class="icon"
-        title="qq" href="tencent://message/?uin=${window.c.qq}" rel="noopener noreferrer" target="_blank"></a>`;
+        var github = (window.c.userAllInfo.github === '' || window.c.userAllInfo.github === undefined) ? '' : `<a class="icon" title="github" href="//${window.c.userAllInfo.github}" rel="noopener noreferrer" target="_blank"></a>`;
+        var website = (window.c.userAllInfo.website === '' || window.c.userAllInfo.website === undefined) ? '' : `<a class="icon" title="website"
+        href="//${window.c.userAllInfo.website}" rel="noopener noreferrer" target="_blank" style="position: relative; top: 3px;"></a>`;
+        var qq = (window.c.userAllInfo.qq === '' || window.c.userAllInfo.qq === undefined) ? '' : `<a class="icon"
+        title="qq" href="tencent://message/?uin=${window.c.userAllInfo.qq}" rel="noopener noreferrer" target="_blank"></a>`;
         var oHtml = `
             ${github}
             ${website}
@@ -1102,16 +1146,16 @@ App.prototype = {
             var duration = localStorage.getItem('Duration');
             // 初始化连接
             c = new Connect();
-            c.username = userName;
-            c.userAvatar = userAvatar;
-            c.sex = userSex;
-            c.birthday = userBirthday;
-            c.website = userWebsite;
-            c.place = userPlace;
-            c.github = userGithub;
-            c.qq = userQq;
-            c.duration = duration;
-            c.usernameEmit(userName);           // 发送服务端注册用户 socket
+            window.c.userAllInfo.username = userName;
+            window.c.userAllInfo.userAvatar = userAvatar;
+            window.c.userAllInfo.sex = userSex;
+            window.c.userAllInfo.birthday = userBirthday;
+            window.c.userAllInfo.website = userWebsite;
+            window.c.userAllInfo.place = userPlace;
+            window.c.userAllInfo.github = userGithub;
+            window.c.userAllInfo.qq = userQq;
+            window.c.userAllInfo.duration = duration;
+            window.c.usernameEmit(userName);           // 发送服务端注册用户 socket
             this.DBcheckUserState(userName);    // 检查用户状态
         }
     },
@@ -1141,11 +1185,11 @@ App.prototype = {
                                     <option value="male">男</option>
                                     <option value="female">女</option>
                                 </select>
-                                <input class="birthday" type="date" value="${window.c.birthday}">
-                                <input class="place" type="text" value="${window.c.place}">
-                                <input class="website" type="url" placeholder="不用写传输协议头" value="${window.c.website}">
-                                <input class="github" type="url" placeholder="不用写传输协议头" value="${window.c.github}">
-                                <input class="qq" type="text" value="${window.c.qq}">
+                                <input class="birthday" type="date" value="${window.c.userAllInfo.birthday}">
+                                <input class="place" type="text" value="${window.c.userAllInfo.place}">
+                                <input class="website" type="url" placeholder="不用写传输协议头" value="${window.c.userAllInfo.website}">
+                                <input class="github" type="url" placeholder="不用写传输协议头" value="${window.c.userAllInfo.github}">
+                                <input class="qq" type="text" value="${window.c.userAllInfo.qq}">
                             </div>
                         </div>
                     </div>
@@ -1155,7 +1199,7 @@ App.prototype = {
                 </div>
             `;
             $('.user-setting').find('.normal-status').remove().end().append(Edit_html);
-            $('.edit-status #personInfoBox select').val(window.c.sex);
+            $('.edit-status #personInfoBox select').val(window.c.userAllInfo.sex);
         } else {
 
             function panelHtml() {
@@ -1170,10 +1214,10 @@ App.prototype = {
                                     <span>位置:</span>
                                 </div>
                                 <div>
-                                    <span>${window.c.sex === 'male' ? '男' : '女'}</span>
-                                    <span>${(new Date().getFullYear() - new Date(window.c.birthday).getFullYear() <= 0 ? '1' : new Date().getFullYear() - new Date(window.c.birthday).getFullYear())}</span>
-                                    <span>${window.c.duration}天</span>
-                                    <span>${window.c.place === '' ? '火星' : window.c.place}</span>
+                                    <span>${window.c.userAllInfo.sex === 'male' ? '男' : '女'}</span>
+                                    <span>${(new Date().getFullYear() - new Date(window.c.userAllInfo.birthday).getFullYear() <= 0 ? '1' : new Date().getFullYear() - new Date(window.c.userAllInfo.birthday).getFullYear())}</span>
+                                    <span>${window.c.userAllInfo.duration}天</span>
+                                    <span>${window.c.userAllInfo.place === '' ? '火星' : window.c.userAllInfo.place}</span>
                                 </div>
                             </div>
                         </div>
@@ -1192,12 +1236,12 @@ App.prototype = {
             var website = $personInfoBox.find('.website').val();
             var github = $personInfoBox.find('.github').val();
             var qq = $personInfoBox.find('.qq').val();
-            if(sex === window.c.sex && birthday === window.c.birthday && place === window.c.place && website === window.c.website && github === window.c.github && qq === window.c.qq) {
+            if (sex === window.c.userAllInfo.sex && birthday === window.c.userAllInfo.birthday && place === window.c.userAllInfo.place && website === window.c.userAllInfo.website && github === window.c.userAllInfo.github && qq === window.c.userAllInfo.qq) {
                 panelHtml();
                 return;
             }
             var userData = {
-                name: window.c.username,
+                name: window.c.userAllInfo.username,
                 sex: sex,
                 birthday: birthday,
                 place: place,
@@ -1213,16 +1257,16 @@ App.prototype = {
                 var Code = res.data.Code;
                 var Str = res.data.Str;
                 layer.msg(Str);
-                if(Code === -1) {
+                if (Code === -1) {
                     setTimeout(() => {
                         location.href = '/login';
-                    },2000);
-                } else if(Code === 0) {
+                    }, 2000);
+                } else if (Code === 0) {
                     // 成功
                     console.log(res);
                     var localData = JSON.parse(localStorage.getItem('UserInfo'));
-                    for(var i in res.data.Data) {
-                        window.c[i] = res.data.Data[i];
+                    for (var i in res.data.Data) {
+                        window.c.userAllInfo[i] = res.data.Data[i];
                         localData[i] = res.data.Data[i];
                     }
                     localStorage.setItem('UserInfo', JSON.stringify(localData));
@@ -1230,7 +1274,7 @@ App.prototype = {
                     window.app.updateUserWebsite();
                 }
             });
-            
+
         }
     },
     checkSetting() {        // 检查用户设置 初始化
@@ -1262,13 +1306,13 @@ App.prototype = {
         });
         $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function (e) {
             var t = $(this)[0].files[0];
-            if(t.size > 1.5 * 1024 * 1024) {
+            if (t.size > 1.5 * 1024 * 1024) {
                 layer.msg('图片太大, 请压缩后重新上传~');
                 return;
             }
             var param = new FormData();
             param.append("avatar", t);
-            param.append("avatarName", c.username);
+            param.append("avatarName", window.c.userAllInfo.username);
             axios({
                 url: UPLOAD_AVATAR_API,
                 method: 'POST',
@@ -1282,7 +1326,7 @@ App.prototype = {
                 var a = res.data.Avatar + '?' + Date.now();
                 if (c === 0) {
                     // 更改本地存贮
-                    window.c.userAvatar = a;
+                    window.c.userAllInfo.userAvatar = a;
                     var ConnectUserInfo = JSON.parse(localStorage.getItem('UserInfo'));
                     ConnectUserInfo.avatar = a;
                     localStorage.setItem('UserInfo', JSON.stringify(ConnectUserInfo));
@@ -1421,7 +1465,7 @@ App.prototype = {
             };
             $body.append(components.chatPanel(dataObj, dataUserPanel));
             c.takeMsg({
-                from: c.username,
+                from: window.c.userAllInfo.username,
                 take: dataUserPanel,
             });
         });
@@ -1433,3 +1477,5 @@ App.prototype = {
 }
 
 app = new App();
+
+

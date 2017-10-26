@@ -65,7 +65,14 @@
                 url: api,
                 data: {
                     name: name,
-                    pwd: pwd
+                    pwd: pwd,
+                    avatar: "http://static.emlice.top/images/users/default.png",
+                    sex: 'male',
+                    birthday: '2017-10-25',
+                    place: '',
+                    website: '',
+                    github: '',
+                    qq: '',
                 }
             }).then(res => {
                 var c = res.data.Code;
