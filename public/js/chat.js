@@ -7,8 +7,8 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
-// const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+// const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
+const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
 const USER_INFO_EDIT = '/api/userEdit';                         // 用户信息上传
