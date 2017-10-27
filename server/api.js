@@ -3,7 +3,10 @@ var app = express();
 var mongoose = require('mongoose');
 require('./connect.js');
 require('./model.js');
-var User = mongoose.model('users');    // User 为 model name
+// User 为 model name
+var User = mongoose.model('users');
+// 获取 messages 集合并指向 Messages 
+var Messages = mongoose.model('messages');
 var LoginState = mongoose.model('userLoginState');
 mongoose.Promise = global.Promise;  // 为了避免警告的出现, 因为 mongoose 的默认 promise 已经弃用了。
 
@@ -161,10 +164,31 @@ app.post(api + '/userEdit', function(req, res) {
                     github: parseStr.website,
                     qq: parseStr.qq
                 } };
+                // 更新数据库 User 表对应用户的信息
                 User.update(query, newVal, function(err, rres) {
                     if(err) {
                         res.send({ Code: -2, Str: '用户信息修改失败, 请刷新重新尝试!' });
                     } else {
+                        // 更新数据库 Messages 表下改用户的所有信息
+                        // 记录时长
+                        var date = Date.now();
+                        var duration = Math.ceil((date - result.date) / (1000 * 60 * 60 * 24));     // 向上取整
+                        var updateInfo = {
+                            username: result.name,
+                            userAvatar: result.avatar,
+                            duration: duration,
+                            sex: parseStr.sex,
+                            birthday: parseStr.birthday,
+                            place: parseStr.place,
+                            website: parseStr.website,
+                            github: parseStr.github,
+                            qq: parseStr.qq
+                        }
+                        updateInfo = JSON.stringify(updateInfo);
+                        Messages.updateMany({from: result.name}, { $set: { userPanelData: updateInfo } }, {}, function(err, result) {
+                            if(err) throw err;
+                            console.log(`${result.name}用户消息修改结果：`,result);
+                        });
                         res.send({ Code: 0, Str: '用户信息修改成功!', Data: parseStr });
                     }
                 });

@@ -32,7 +32,14 @@ http.listen(3000, function() {
 
 var users = {};
 
-
+// 抽离公共方法
+var emitOnlineUser = function(u) {
+    var query = { name: { $in: Object.keys(u) } }
+    User.find(query, { name: 1, avatar: 1 }, function(err,r) {
+        if(err) throw err;
+        io.emit('user join', r);
+    });
+}
 
 // socket.io code
 io.on('connection', function(socket) {
@@ -43,22 +50,39 @@ io.on('connection', function(socket) {
         username = user;
         users[user] = socket;
         console.log(Object.keys(users));
-        // User.find({}, { name: 1, avatar: 1 }, function(err,result) {
-        //     if(err) throw err;
-        //     console.log(result);
-        //     if(result === null) {
+        emitOnlineUser(users);          // 用户加入发射在线用户信息
+    });
 
-        //     }else {
-                
-        //     }
-        // });
-        // io.emit('user join', );
+    // 改变 online panel
+    socket.on('change onlinePanel', function(f) {
+        if(f) {
+            emitOnlineUser(users);          // 用户加入发射在线用户信息
+        }
     });
 
     socket.on('disconnect', function() {
         if(username === undefined) return;
         delete users[username];
         console.log(username + '离开了聊天室');
+        emitOnlineUser(users);          // 用户退出刷新在线用户信息
+    });
+
+
+    // 消息已读
+    socket.on('message read', function(res) {
+        var msgArr = res.msgs;
+        var name = res.readUser;
+        console.log(name);
+        for(var i = 0;i < msgArr.length;i++) {
+            if(msgArr[i].to = 'all') {
+                return;
+            }
+            if(msgArr[i].to === name) {
+                Messages.updateMany(msgArr[i],{ $set: { read: true } }, {}, function(handleRes){
+                    // console.log(handleRes);
+                });
+            }
+        }
     });
 
     socket.on('message', function(res) {
@@ -92,7 +116,7 @@ io.on('connection', function(socket) {
                 // 谁调取聊天记录
                 console.log(res.from + '调取聊天记录');
                 result.reverse();
-                users[res.from].emit('take messages', result);
+                users[res.from] && users[res.from].emit('take messages', result);
             });
         }else {
             var a = res.from;
@@ -110,7 +134,7 @@ io.on('connection', function(socket) {
                 // 谁调取聊天记录
                 console.log(res.from + '调取聊天记录');
                 result.reverse();
-                users[res.from].emit('take messages', result);
+                users[res.from] && users[res.from].emit('take messages', result);
             });
         }
         
@@ -122,9 +146,9 @@ io.on('connection', function(socket) {
         User.findOne(query, function(err, result) {
             if(err) throw err;
             if(result === null) {
-                users[res].emit('checkUser', {Code: -1, Str: '数据库已更新, 请重新注册登录~'});
+                users[res] && users[res].emit('checkUser', {Code: -1, Str: '数据库已更新, 请重新注册登录~'});
             } else {
-                users[res].emit('checkUser', {Code: 0, Str: '用户状态正常~'});
+                users[res] && users[res].emit('checkUser', {Code: 0, Str: '用户状态正常~'});
             }
         });
     });

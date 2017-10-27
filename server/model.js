@@ -36,6 +36,7 @@ var MessagesSchema = new mongoose.Schema({
     avatar: String,
     to: String,
     message: String,
-    date: Number
+    date: Number,
+    read: Boolean
 });
 mongoose.model('messages', MessagesSchema);

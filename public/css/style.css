@@ -668,14 +668,15 @@ header {
 }
 
 .user-setting {
+    position: absolute;
     z-index: 11;
     left: 0;
     right: 0;
-    position: absolute;
     margin: auto;
     top: 0;
     bottom: 0;
     width: 300px;
+    max-height: 398px;
     max-height: max-content;
     display: flex;
     flex-direction: column;
@@ -1688,14 +1689,15 @@ header {
 }
 
 .user-info {
+    position: absolute;
     z-index: 11;
     left: 0;
     right: 0;
-    position: absolute;
     margin: auto;
     top: 0;
     bottom: 0;
     width: 300px;
+    max-height: 368px;
     max-height: max-content;
     display: flex;
     flex-direction: column;

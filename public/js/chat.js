@@ -251,17 +251,10 @@ MyComponents.prototype = {
                     <span>无</span></div>
                 <div class="content">
                     <span>在线人数：</span>
-                    <span class="onlinePeoples">${dataObj.float.peoples}人</span>
+                    <span class="onlineUsers">${dataObj.float.peoples}人</span>
                 </div>
                 <div class="userList">
-                    <div>
-                        <div class="avatar-text" style="background-color: forestgreen; width: 40px; height: 40px; font-size: 16px; min-width: 40px; min-height: 40px;">碎</div>
-                        <span>碎碎酱</span>
-                    </div>
-                    <div>
-                        <img class="avatar-image" src="https://cdn.suisuijiang.com/user_592243028cd75f2f076dfeef_1504508859571.png?imageView2/2/w/40/h/40" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
-                        <span>blackmiaool</span>
-                    </div>
+                    ${onlinePanel(window.c.onlineUsers)}
                 </div>
                 <input type="file" accept="image/*"></div>
             <div class="group-info-exit">
@@ -270,35 +263,41 @@ MyComponents.prototype = {
         <div class="float-panel roomNoticePanel" style="right: -340px;">
             <div>
                 <span>群公告</span>
-                <i class="icon close"></i></div>
+                <i class="icon close"></i>
+            </div>
             <div class="group-notice">
                 <div>
-                    <!-- react-text: 1702 -->system
-                    <!-- /react-text -->
-                    <!-- react-text: 1703 -->更新于
-                    <!-- /react-text -->
-                    <!-- react-text: 1704 -->2017年10月20日 17:43
-                    <!-- /react-text --></div>
-                <div class="content">欢迎各位来到 Emlice </div></div>
+                    system
+                    更新于
+                    2017年10月20日 17:43
+                </div>
+                <div class="content">欢迎各位来到 Emlice </div>
+            </div>
         </div>
         `;
 
-        var notic = `
-        <div>
-            <div style="margin: auto 8px;" class="roomNotice">
-                <i class="icon" title="公告"></i></div>
-            <div style="margin: auto 8px;" class="roomInfo">
-                <i class="icon" title="关于"></i></div>
-        </div>
-        `;
+        var notic = function() {
+            if(to === 'all') {
+                return `
+                            <div>
+                                <div style="margin: auto 8px;" class="roomNotice">
+                                    <i class="icon" title="公告"></i></div>
+                                <div style="margin: auto 8px;" class="roomInfo">
+                                    <i class="icon" title="关于"></i></div>
+                            </div>
+                        `;
+            } else {
+                return '';
+            }
+        }
 
         var com = `
         <div class="chat-panel-header">
             <div>
-                <img class="avatar-image" src="${dataObj.com.avatar}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
+                <img class="avatar-image" src="${dataObj.com.avatar}?${Date.now()}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
                 <p>${dataObj.com.username}</p>
             </div>
-            ${notic}
+            ${notic()}
         </div>
         <div class="message-list">
         </div>
@@ -320,6 +319,7 @@ MyComponents.prototype = {
         <div class="chat-panel" chat-type="${to}">
             ${com}
             ${emo}
+            ${usr}
         </div>
         `;
         if (to === 'all') {
@@ -331,7 +331,7 @@ MyComponents.prototype = {
     userListItem(obj) {
         var oHtml = `
         <div class="user-list-item" data-user="${obj.to}">
-            <img class="avatar-image" src="${obj.avatar}" alt="">
+            <img class="avatar-image" src="${obj.avatar}?${Date.now()}" alt="">
             <div class="unread">0</div>
             <div class="content">
                 <div>
@@ -396,6 +396,21 @@ function noticeProcess(param) {
 }
 
 
+// online panel
+function onlinePanel(obj) {
+    var str = '';
+    for(var i = 0; i < obj.length; i++) {
+        str += `
+            <div data-user="${obj[i].name}">
+                <img class="avatar-image" src="${obj[i].avatar}?${Date.now()}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
+                <span>${obj[i].name}</span>
+            </div>
+        `;
+    }
+    return str;
+}
+
+
 // 向上滚动加载
 // function scrollAjax() {
 //     var $this = $('.message-list');
@@ -431,13 +446,13 @@ UserInfo.prototype = {
         $win.on('click', '.avatar-image.user-icon', function (e) {
             var e = e || event;
             e.stopPropagation();
+            var userPanelData = JSON.parse($(this).attr('data-userPanelData'));         // 用户名片
             var uif = _this.userInfoFlag;
             if (uif === false) return;
+            if (userPanelData.username === window.c.userAllInfo.username) return;
             _this.userInfoFlag = false;
             var src = $(this).attr('src');
-            var userPanelData = JSON.parse($(this).attr('data-userPanelData'));         // 用户名片
             var f = $('.chat-panel').attr('chat-type');
-            if (userPanelData.username === window.c.userAllInfo.username || f !== 'all') return;
             // 插入链接
             var github = (userPanelData.github === '' || userPanelData.github === undefined) ? '' : `<a class="icon" title="github" href="//${userPanelData.github}" rel="noopener noreferrer" target="_blank"></a>`;
             var website = (userPanelData.website === '' || userPanelData.website === undefined) ? '' : `<a class="icon" title="website"
@@ -508,10 +523,11 @@ UserInfo.prototype = {
     // 新建聊天窗口
     openChat: function () {
         var _this = this;
-        $win.on('click', '.singleChatBtn', function () {
+        $win.on('click', '.singleChatBtn, .userList .avatar-image', function () {
             _this.userInfoFlag = true;
-            var username = $(this).attr('data-to');
-            var avatar = $(this).attr('data-avatar');
+            var username = $(this).attr('data-to') || $(this).parent().attr('data-user');
+            if(username === window.c.userAllInfo.username) return;
+            var avatar = $(this).attr('data-avatar') || $(this).attr('src');
 
             // 查询 $userList 里面是否有该用户面板 没有就新建, 有就跳过。
             var f = $userList.find('.user-list-item[data-user=' + username + ']');
@@ -538,7 +554,7 @@ UserInfo.prototype = {
                     username: ''
                 },
                 float: {
-                    peoples: window.c.onlinePeoples
+                    peoples: window.c.onlineUsers.length
                 }
             };
             // 删除聊天窗口
@@ -591,12 +607,9 @@ UserInfo.prototype = {
     toolBtn() {         // 消息辅助输入    表情包/图片/代码格式化
         var _this = this;
         // 聊天工具栏阻止冒泡
-        $body.on('click', '.chat-panel .toolbar div', function (e) {
-            var e = e || window.event;
-            e.stopPropagation();
-        });
         // 表情包面板阻止事件冒泡
-        $body.on('click', '.chat-panel .expression', function (e) {
+        // 右侧浮动面板阻止事件冒泡 online
+        $body.on('click', '.chat-panel .toolbar div, .chat-panel .expression', function (e) {
             var e = e || window.event;
             e.stopPropagation();
         });
@@ -611,7 +624,8 @@ UserInfo.prototype = {
                 avatar: window.c.userAllInfo.userAvatar,
                 to: to,
                 message: `#${baidu[idx]}`,
-                date: new Date().getTime()
+                date: new Date().getTime(),
+                read: false,
             }
             window.c.sendMsg(msg);
             _this.closeTool();
@@ -630,7 +644,7 @@ UserInfo.prototype = {
                 });
                 $mask.show();
             } else {
-                layer.msg('暂未开放!');
+                layer.msg('暂未开放');
             }
         });
         $body.on('click', '.chat-panel .expression .select-panel div', function () {
@@ -639,7 +653,7 @@ UserInfo.prototype = {
             if (idx === 0) {
                 return;
             } else {
-                layer.msg('暂未开放!');
+                layer.msg('暂未开放');
             }
         });
 
@@ -661,9 +675,11 @@ UserInfo.prototype = {
         $body.on('click', '.roomInfo', function (e) {
             var e = e || window.event;
             e.stopPropagation();
-            layer.msg('该面板数据正在测试, 暂时为虚假数据!');
             $('.roomInfoPanel').css('right', '0px');
             $mask.show();
+        });
+        $body.on('click', '.roomInfoPanel button', function() {
+            layer.msg('暂未开放');
         });
         $body.on('click', '.roomInfoPanel .close', function () {
             _this.closeRoomPanel();
@@ -702,7 +718,7 @@ function Connect() {
         qq:'',               // QQ
 
     };
-    onlinePeoples: '',        // 在线人数
+    onlineUsers: [],        // 在线人数
     this.myUserListArr = {      // 我的临时会话集合
         all: {
             noRead: 0
@@ -730,8 +746,10 @@ Connect.prototype = {
     },
     // 渲染消息
     renderMsg(res) {
-        // console.log('渲染消息：', res);
+        console.log('渲染消息：', res);
         var $messages = $('.message-list');
+        // 阅读标志
+        var readFlag = true;
         // 判断当前窗口是否是会话窗花
         var p = $('.message-list').parents('.chat-panel').attr('chat-type');
         for (var i = 0; i < res.length; i++) {
@@ -750,7 +768,6 @@ Connect.prototype = {
                 }
             }
 
-            var p = $('.message-list').parents('.chat-panel').attr('chat-type');
             if (p !== undefined) {
                 if (p !== 'all' && res[i].to === 'all') {
                     continue;
@@ -758,6 +775,13 @@ Connect.prototype = {
                     continue;
                 }
             }
+
+            // 朕已阅
+            if(readFlag) {
+                socket.emit('message read', { readUser: window.c.userAllInfo.username, msgs: res });
+                readFlag = false;
+            }
+
             var isMy = window.c.userAllInfo.username == res[i].from ? true : false;
 
             function msgProcess(param) {
@@ -886,7 +910,8 @@ $win.on('keydown', '.input-box input', function (e) {
             avatar: window.c.userAllInfo.userAvatar,
             to: to,
             message: m,
-            date: new Date().getTime()
+            date: new Date().getTime(),
+            read: false,
         }
         c.sendMsg(msg);
         $(this).val('');                  // empty input
@@ -924,7 +949,8 @@ var imgReader = function (item) {
                 avatar: window.c.userAllInfo.userAvatar,
                 to: to,
                 message: `%${d}`,
-                date: new Date().getTime()
+                date: new Date().getTime(),
+                read: false,
             }
             window.c.sendMsg(msg);
         } else if (Code === -1) {
@@ -952,7 +978,7 @@ $win.on('paste', '.input-box input', function (e) {
 
 // render message
 socket.on('message', function (res) {
-    // console.log('接受消息并打印, 准备送往渲染工厂：', res);
+    console.log('接受消息并打印, 准备送往渲染工厂：', res);
 
     /**
      *  from 来自谁的消息
@@ -1070,13 +1096,30 @@ socket.on('checkUser', function (data) {
 // 接受在线人数
 socket.on('user join', function(res) {
     // 修改在线人数
-    window.c.onlinePeoples = res.length;
-    if($('.onlinePeoples').length !== 0) {
-        $('.onlinePeoples').text(res.length + '人');
+    window.c.onlineUsers = res;
+    // 因用户修改头像 => 修改私聊用户头像
+    for(var i = 0;i < res.length;i++) {
+        var $user = $(`.user-list .user-list-item[data-user=${res[i].name}]`);
+        var $userPanel = $(`.chat-panel[chat-type=${res[i].name}]`);
+        if( $user.length !== 0) {
+            $user.find('img').attr('src',res[i].avatar + '?' + Date.now());
+        }
+        if($userPanel.length !== 0) {
+            $userPanel.find('.chat-panel-header .avatar-image').attr('src',res[i].avatar + '?' + Date.now());
+        }
     }
-    console.log(res);
+    // 更新 online Panel
+    if($('.onlineUsers').length !== 0) {
+        $('.onlineUsers').text(res.length + '人');
+        $('.roomInfoPanel .userList').empty().append(onlinePanel(res));
+    }
 });
 
+
+// 改变 online panel
+socket.on('change onlinePanel', function(res) {
+    $('.roomInfoPanel .userList').empty().append(onlinePanel(res));
+});
 
 
 
@@ -1256,7 +1299,7 @@ App.prototype = {
                     }, 2000);
                 } else if (Code === 0) {
                     // 成功
-                    console.log(res);
+                    // console.log(res);
                     var localData = JSON.parse(localStorage.getItem('UserInfo'));
                     for (var i in res.data.Data) {
                         window.c.userAllInfo[i] = res.data.Data[i];
@@ -1326,6 +1369,7 @@ App.prototype = {
                     _this.updateUserInfo();
                     // 文件上传成功
                     layer.msg(s);
+                    socket.emit('change onlinePanel', 1);
                 } else if (c === -1) {
                     layer.msg(s);
                 }
@@ -1453,7 +1497,7 @@ App.prototype = {
                     username: ''
                 },
                 float: {
-                    peoples: window.c.onlinePeoples
+                    peoples: window.c.onlineUsers.length
                 }
             };
             $body.append(components.chatPanel(dataObj, dataUserPanel));
