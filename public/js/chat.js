@@ -441,7 +441,14 @@ UserInfo.prototype = {
         this.toolBtn();
         this.roomInfo();
     },
-    openAvatarInfo: function () {
+    renderBubble() {
+        // 渲染未读消息气泡
+        $('.user-list-item').each(function () {
+            var t = $(this).attr('data-user');
+            $(this).find('.unread').text(c.myUserListArr[t].noRead);
+        });
+    },
+    openAvatarInfo() {
         var _this = this;
         $win.on('click', '.avatar-image.user-icon', function (e) {
             var e = e || event;
@@ -502,7 +509,7 @@ UserInfo.prototype = {
             $mask.show();
         });
     },
-    close: function () {
+    close () {
         var _this = this;
         $win.on('click', '.user-info i.icon', function () {
             _this.closeUserInfo(_this);
@@ -521,7 +528,7 @@ UserInfo.prototype = {
         }, 300);
     },
     // 新建聊天窗口
-    openChat: function () {
+    openChat () {
         var _this = this;
         $win.on('click', '.singleChatBtn, .userList .avatar-image', function () {
             _this.userInfoFlag = true;
@@ -574,7 +581,7 @@ UserInfo.prototype = {
             $('.chat-panel[chat-type=' + username + ']').show();
         });
     },
-    openUserSetting: function () {          // 打开用户设置
+    openUserSetting () {          // 打开用户设置
         $('.avatar-text[title=查看个人信息]').on('click', function (e) {
             var e = e || window.event;
             // 阻止事件冒泡
@@ -746,10 +753,8 @@ Connect.prototype = {
     },
     // 渲染消息
     renderMsg(res) {
-        console.log('渲染消息：', res);
+        // console.log('渲染消息：', res);
         var $messages = $('.message-list');
-        // 阅读标志
-        var readFlag = true;
         // 判断当前窗口是否是会话窗花
         var p = $('.message-list').parents('.chat-panel').attr('chat-type');
         for (var i = 0; i < res.length; i++) {
@@ -774,12 +779,6 @@ Connect.prototype = {
                 } else if (p == 'all' && res[i].to !== 'all') {
                     continue;
                 }
-            }
-
-            // 朕已阅
-            if(readFlag) {
-                socket.emit('message read', { readUser: window.c.userAllInfo.username, msgs: res });
-                readFlag = false;
             }
 
             var isMy = window.c.userAllInfo.username == res[i].from ? true : false;
@@ -871,6 +870,8 @@ Connect.prototype = {
             if (i === res.length - 1) {
                 if ($messages.length === 0) return;
                 $messages[0].scrollTop = $messages[0].scrollHeight;
+                // 朕已阅
+                socket.emit('message read', { readUser: window.c.userAllInfo.username, msgs: res });
             }
         }
         if ($('.postbird-img-glass-box') !== undefined) $('.postbird-img-glass-box').remove();
@@ -978,7 +979,8 @@ $win.on('paste', '.input-box input', function (e) {
 
 // render message
 socket.on('message', function (res) {
-    console.log('接受消息并打印, 准备送往渲染工厂：', res);
+    console.log(res);
+    // console.log('接受消息并打印, 准备送往渲染工厂：', res);
 
     /**
      *  from 来自谁的消息
@@ -1023,13 +1025,8 @@ socket.on('message', function (res) {
 
 
 
-
-    // 渲染未读消息气泡
-    $('.user-list-item').each(function () {
-        var t = $(this).attr('data-user');
-        $(this).find('.unread').text(c.myUserListArr[t].noRead);
-
-    });
+    // 渲染消息气泡
+    window.userInfo.renderBubble();
 
     if (res[0].from !== window.c.userAllInfo.username) {
         var d = JSON.parse(localStorage.getItem('desktopNotification'));
@@ -1122,6 +1119,43 @@ socket.on('change onlinePanel', function(res) {
 });
 
 
+// 接受离线消息未读条数
+socket.on('Offline noRead messages', function(res) {
+    var fromArr = {};
+    if(res.length !== 0) {
+        for(let i = 0;i < res.length;i++) {
+            if(fromArr[res[i].from] === undefined) {
+                fromArr[res[i].from] = {};
+                fromArr[res[i].from].avatar = res[i].avatar;
+                fromArr[res[i].from].noRead = 1;
+            }else {
+                fromArr[res[i].from].noRead++;
+            }
+        }
+
+        for (var k in fromArr) {
+            var f = $userList.find('.user-list-item[data-user=' + k + ']');
+            if (f.length === 0 && k !== window.c.userAllInfo.username && k !== 'all') {
+                let o = {
+                    to: k,
+                    avatar: fromArr[k].avatar
+                }
+                $userList.append(components.userListItem(o));
+                // 添加临时会话成员
+                c.myUserListArr[k] = {
+                    noRead: fromArr[k].noRead
+                };
+            }
+        }
+
+        // 渲染未读消息气泡
+        window.userInfo.renderBubble();
+
+    }
+});
+
+
+
 
 
 // init App action
@@ -1192,11 +1226,15 @@ App.prototype = {
             window.c.userAllInfo.qq = userQq;
             window.c.userAllInfo.duration = duration;
             window.c.usernameEmit(userName);           // 发送服务端注册用户 socket
-            this.DBcheckUserState(userName);    // 检查用户状态
+            this.DBcheckUserState(userName);           // 检查用户状态
+            this.checkNoReadMsg(userName);             // 检查离线状态下的未读消息, 初始化
         }
     },
     DBcheckUserState(user) {                // 数据库检查用户是否存在
         socket.emit('checkUser', user);     // 向服务端发送请求检查用户状态
+    },
+    checkNoReadMsg(user) {                      // 检查离线状态下的未读消息, 初始化
+        socket.emit('Offline noRead messages',user);
     },
     logout() {          // 退出登录
         localStorage.removeItem('UserInfo');
@@ -1509,10 +1547,8 @@ App.prototype = {
     },
     player() {
         //参数1：歌词容器选择器，参数2：歌单id，参数3：歌曲重定向地址，用于欺骗浏览器音频跨域显示频谱
-        playmusic('.description', '432778620');
+        // playmusic('.description', '432778620');
     },
 }
 
 app = new App();
-
-

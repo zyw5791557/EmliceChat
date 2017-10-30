@@ -72,18 +72,29 @@ io.on('connection', function(socket) {
     socket.on('message read', function(res) {
         var msgArr = res.msgs;
         var name = res.readUser;
-        console.log(name);
+        var idArr = [];
+        if(msgArr[0].to === 'all') return;
         for(var i = 0;i < msgArr.length;i++) {
-            if(msgArr[i].to = 'all') {
-                return;
-            }
             if(msgArr[i].to === name) {
-                Messages.updateMany(msgArr[i],{ $set: { read: true } }, {}, function(handleRes){
-                    // console.log(handleRes);
-                });
+                idArr.push(msgArr[i]._id);
             }
         }
+        console.log('查看ID',idArr);
+        Messages.update({ _id: { $in: idArr } },{ $set: { read: true } }, { multi: true }, function(err,result) {
+            if(err) throw err;
+            console.log('已阅读：',result);
+        });
     });
+
+    // 调取离线未读消息
+    socket.on('Offline noRead messages', function(name) {
+        console.log(name,'调取离线未读消息');
+        var query = { to: name, read: false };
+        Messages.find(query, function(err,result) {
+            users[name].emit('Offline noRead messages', result);
+        });
+    });
+
 
     socket.on('message', function(res) {
         console.log(res);
