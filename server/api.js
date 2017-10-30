@@ -75,11 +75,9 @@ app.post( api + '/login',function(req,res) {
                 for(var i in result) {
                     var arr = ['name', 'avatar', 'date', 'sex', 'birthday', 'website', 'place', 'github', 'qq'];
                     if(arr.indexOf(i) !== -1) {
-                        console.log(i)
                         s[i] = result[i];
                     }
                 }
-                console.log(s);
                 var c = new PostCallbackData({
                     Code: 0,
                     Data: s,
@@ -169,26 +167,6 @@ app.post(api + '/userEdit', function(req, res) {
                     if(err) {
                         res.send({ Code: -2, Str: '用户信息修改失败, 请刷新重新尝试!' });
                     } else {
-                        // 更新数据库 Messages 表下改用户的所有信息
-                        // 记录时长
-                        var date = Date.now();
-                        var duration = Math.ceil((date - result.date) / (1000 * 60 * 60 * 24));     // 向上取整
-                        var updateInfo = {
-                            username: result.name,
-                            userAvatar: result.avatar,
-                            duration: duration,
-                            sex: parseStr.sex,
-                            birthday: parseStr.birthday,
-                            place: parseStr.place,
-                            website: parseStr.website,
-                            github: parseStr.github,
-                            qq: parseStr.qq
-                        }
-                        updateInfo = JSON.stringify(updateInfo);
-                        Messages.updateMany({from: result.name}, { $set: { userPanelData: updateInfo } }, {}, function(err, result) {
-                            if(err) throw err;
-                            console.log(`${result.name}用户消息修改结果：`,result);
-                        });
                         res.send({ Code: 0, Str: '用户信息修改成功!', Data: parseStr });
                     }
                 });

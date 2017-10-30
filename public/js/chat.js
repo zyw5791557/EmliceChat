@@ -276,8 +276,8 @@ MyComponents.prototype = {
         </div>
         `;
 
-        var notic = function() {
-            if(to === 'all') {
+        var notic = function () {
+            if (to === 'all') {
                 return `
                             <div>
                                 <div style="margin: auto 8px;" class="roomNotice">
@@ -399,7 +399,7 @@ function noticeProcess(param) {
 // online panel
 function onlinePanel(obj) {
     var str = '';
-    for(var i = 0; i < obj.length; i++) {
+    for (var i = 0; i < obj.length; i++) {
         str += `
             <div data-user="${obj[i].name}">
                 <img class="avatar-image" src="${obj[i].avatar}?${Date.now()}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
@@ -453,63 +453,14 @@ UserInfo.prototype = {
         $win.on('click', '.avatar-image.user-icon', function (e) {
             var e = e || event;
             e.stopPropagation();
-            var userPanelData = JSON.parse($(this).attr('data-userPanelData'));         // 用户名片
             var uif = _this.userInfoFlag;
+            var name = $(this).attr('data-username');
             if (uif === false) return;
-            if (userPanelData.username === window.c.userAllInfo.username) return;
-            _this.userInfoFlag = false;
-            var src = $(this).attr('src');
-            var f = $('.chat-panel').attr('chat-type');
-            // 插入链接
-            var github = (userPanelData.github === '' || userPanelData.github === undefined) ? '' : `<a class="icon" title="github" href="//${userPanelData.github}" rel="noopener noreferrer" target="_blank"></a>`;
-            var website = (userPanelData.website === '' || userPanelData.website === undefined) ? '' : `<a class="icon" title="website"
-            href="//${userPanelData.website}" rel="noopener noreferrer" target="_blank" style="position: relative; top: 3px;"></a>`;
-            var qq = (userPanelData.qq === '' || userPanelData.qq === undefined) ? '' : `<a class="icon"
-            title="qq" href="tencent://message/?uin=${userPanelData.qq}" rel="noopener noreferrer" target="_blank"></a>`;
-    
-            var commonHtml = `
-            <div><i class="icon"></i>
-                <div class="background-image" style="background-image: url(/images/b.jpg);"></div>
-                <div class="background-mask"></div>
-                <div class="content"><img class="avatar-image" src="${userPanelData.userAvatar}"
-                        style="width: 80px; height: 80px; min-width: 80px; min-height: 80px;"><span>${userPanelData.username}</span>
-                    <div class="icon-list">
-                        ${github}
-                        ${website}
-                        ${qq}
-                    </div>
-                </div>
-            </div>
-            <div class="normal-status">
-                <div>
-                    <div>
-                        <div>
-                            <span>性别:</span>
-                            <span>年龄:</span>
-                            <span>时长:</span>
-                            <span>位置:</span>
-                        </div>
-                        <div>
-                            <span>${userPanelData.sex === 'male' ? '男' : '女'}</span>
-                            <span>${(new Date().getFullYear() - new Date(userPanelData.birthday).getFullYear()) <= 0 ? 1 : (new Date().getFullYear() - new Date(userPanelData.birthday).getFullYear())}</span>
-                            <span>${userPanelData.duration}天</span>
-                            <span>${userPanelData.place === '' ? '火星' : userPanelData.place}</span>
-                        </div>
-                    </div>
-                </div>
-                <div><button class="singleChatBtn" data-to="${userPanelData.username}" data-avatar="${userPanelData.userAvatar}">发起聊天</button></div>
-            </div>
-            `;
-            var $userInfoModel = $('.user-info');
-            $userInfoModel.append(commonHtml);
-            $userInfoModel.show().css({
-                opacity: 1,
-                transform: 'scale(1)',
-            });
-            $mask.show();
+            if (name === window.c.userAllInfo.username) return;
+            socket.emit('take userInfo', name);
         });
     },
-    close () {
+    close() {
         var _this = this;
         $win.on('click', '.user-info i.icon', function () {
             _this.closeUserInfo(_this);
@@ -528,12 +479,12 @@ UserInfo.prototype = {
         }, 300);
     },
     // 新建聊天窗口
-    openChat () {
+    openChat() {
         var _this = this;
         $win.on('click', '.singleChatBtn, .userList .avatar-image', function () {
             _this.userInfoFlag = true;
             var username = $(this).attr('data-to') || $(this).parent().attr('data-user');
-            if(username === window.c.userAllInfo.username) return;
+            if (username === window.c.userAllInfo.username) return;
             var avatar = $(this).attr('data-avatar') || $(this).attr('src');
 
             // 查询 $userList 里面是否有该用户面板 没有就新建, 有就跳过。
@@ -581,7 +532,7 @@ UserInfo.prototype = {
             $('.chat-panel[chat-type=' + username + ']').show();
         });
     },
-    openUserSetting () {          // 打开用户设置
+    openUserSetting() {          // 打开用户设置
         $('.avatar-text[title=查看个人信息]').on('click', function (e) {
             var e = e || window.event;
             // 阻止事件冒泡
@@ -685,7 +636,7 @@ UserInfo.prototype = {
             $('.roomInfoPanel').css('right', '0px');
             $mask.show();
         });
-        $body.on('click', '.roomInfoPanel button', function() {
+        $body.on('click', '.roomInfoPanel button', function () {
             layer.msg('暂未开放');
         });
         $body.on('click', '.roomInfoPanel .close', function () {
@@ -713,24 +664,24 @@ var socket = io();
 // 连接实例
 function Connect() {
     // 用户所有消息集合
-    this.userAllInfo  = {
-        username:'',         // 我的连接账号即用户名
-        userAvatar:'',       // 用户头像
-        duration:'',         // 用户时长
-        sex:'',              // 性别
-        birthday:'',         // 出生日期
-        place:'',            // 位置
-        website:'',          // 站点
-        github:'',           // github
-        qq:'',               // QQ
+    this.userAllInfo = {
+        username: '',         // 我的连接账号即用户名
+        userAvatar: '',       // 用户头像
+        duration: '',         // 用户时长
+        sex: '',              // 性别
+        birthday: '',         // 出生日期
+        place: '',            // 位置
+        website: '',          // 站点
+        github: '',           // github
+        qq: '',               // QQ
 
     };
     onlineUsers: [],        // 在线人数
-    this.myUserListArr = {      // 我的临时会话集合
-        all: {
-            noRead: 0
-        },
-    };
+        this.myUserListArr = {      // 我的临时会话集合
+            all: {
+                noRead: 0
+            },
+        };
 }
 
 Connect.prototype = {
@@ -744,11 +695,6 @@ Connect.prototype = {
     },
     // 发送消息
     sendMsg(msg) {
-        var s = {};
-        for(var i in window.c.userAllInfo) {
-            s[i] = window.c.userAllInfo[i];
-        }
-        msg.userPanelData = JSON.stringify(s);
         socket.emit('message', msg);
     },
     // 渲染消息
@@ -808,7 +754,7 @@ Connect.prototype = {
                 } else if (t === '%') {
                     var imgSrc = param.substr(1);
                     var f = imgSrc.match(/^(https?|ftp|file):\/\//g);
-                    if(f === null) {
+                    if (f === null) {
                         return `
                         <div class="text">
                             ${param}
@@ -822,7 +768,7 @@ Connect.prototype = {
                     `;
                 } else {
                     var FTA = param.match(/^(https?|ftp|file):\/\//g);
-                    if(FTA !== null) {
+                    if (FTA !== null) {
                         return `
                             <div class="text">
                                 <a href="${param}" rel="noopener noreferrer" target="_blank">${param}</a>
@@ -839,7 +785,7 @@ Connect.prototype = {
 
             }
             var commonHtml = `
-                    <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}"  data-userPanelData='${res[i].userPanelData !== undefined ? res[i].userPanelData : ""}'>
+                    <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}">
                     <div>
                         <div>
                             <span class="message-username">${res[i].from}</span>
@@ -979,8 +925,7 @@ $win.on('paste', '.input-box input', function (e) {
 
 // render message
 socket.on('message', function (res) {
-    console.log(res);
-    // console.log('接受消息并打印, 准备送往渲染工厂：', res);
+    console.log('接受消息并打印, 准备送往渲染工厂：', res);
 
     /**
      *  from 来自谁的消息
@@ -1091,22 +1036,22 @@ socket.on('checkUser', function (data) {
 });
 
 // 接受在线人数
-socket.on('user join', function(res) {
+socket.on('user join', function (res) {
     // 修改在线人数
     window.c.onlineUsers = res;
     // 因用户修改头像 => 修改私聊用户头像
-    for(var i = 0;i < res.length;i++) {
+    for (var i = 0; i < res.length; i++) {
         var $user = $(`.user-list .user-list-item[data-user=${res[i].name}]`);
         var $userPanel = $(`.chat-panel[chat-type=${res[i].name}]`);
-        if( $user.length !== 0) {
-            $user.find('img').attr('src',res[i].avatar + '?' + Date.now());
+        if ($user.length !== 0) {
+            $user.find('img').attr('src', res[i].avatar + '?' + Date.now());
         }
-        if($userPanel.length !== 0) {
-            $userPanel.find('.chat-panel-header .avatar-image').attr('src',res[i].avatar + '?' + Date.now());
+        if ($userPanel.length !== 0) {
+            $userPanel.find('.chat-panel-header .avatar-image').attr('src', res[i].avatar + '?' + Date.now());
         }
     }
     // 更新 online Panel
-    if($('.onlineUsers').length !== 0) {
+    if ($('.onlineUsers').length !== 0) {
         $('.onlineUsers').text(res.length + '人');
         $('.roomInfoPanel .userList').empty().append(onlinePanel(res));
     }
@@ -1114,21 +1059,21 @@ socket.on('user join', function(res) {
 
 
 // 改变 online panel
-socket.on('change onlinePanel', function(res) {
+socket.on('change onlinePanel', function (res) {
     $('.roomInfoPanel .userList').empty().append(onlinePanel(res));
 });
 
 
 // 接受离线消息未读条数
-socket.on('Offline noRead messages', function(res) {
+socket.on('Offline noRead messages', function (res) {
     var fromArr = {};
-    if(res.length !== 0) {
-        for(let i = 0;i < res.length;i++) {
-            if(fromArr[res[i].from] === undefined) {
+    if (res.length !== 0) {
+        for (let i = 0; i < res.length; i++) {
+            if (fromArr[res[i].from] === undefined) {
                 fromArr[res[i].from] = {};
                 fromArr[res[i].from].avatar = res[i].avatar;
                 fromArr[res[i].from].noRead = 1;
-            }else {
+            } else {
                 fromArr[res[i].from].noRead++;
             }
         }
@@ -1154,6 +1099,62 @@ socket.on('Offline noRead messages', function(res) {
     }
 });
 
+
+// 获取用户名片
+socket.on('take userInfo', function (res) {
+    if (res) {
+        var userPanelData = res.Data;
+        window.userInfo.userInfoFlag = false;
+        var f = $('.chat-panel').attr('chat-type');
+        // 插入链接
+        var github = (userPanelData.github === '' || userPanelData.github === undefined) ? '' : `<a class="icon" title="github" href="//${userPanelData.github}" rel="noopener noreferrer" target="_blank"></a>`;
+        var website = (userPanelData.website === '' || userPanelData.website === undefined) ? '' : `<a class="icon" title="website"
+        href="//${userPanelData.website}" rel="noopener noreferrer" target="_blank" style="position: relative; top: 3px;"></a>`;
+        var qq = (userPanelData.qq === '' || userPanelData.qq === undefined) ? '' : `<a class="icon"
+        title="qq" href="tencent://message/?uin=${userPanelData.qq}" rel="noopener noreferrer" target="_blank"></a>`;
+
+        var commonHtml = `
+        <div><i class="icon"></i>
+            <div class="background-image" style="background-image: url(/images/b.jpg);"></div>
+            <div class="background-mask"></div>
+            <div class="content"><img class="avatar-image" src="${userPanelData.avatar}"
+                    style="width: 80px; height: 80px; min-width: 80px; min-height: 80px;"><span>${userPanelData.name}</span>
+                <div class="icon-list">
+                    ${github}
+                    ${website}
+                    ${qq}
+                </div>
+            </div>
+        </div>
+        <div class="normal-status">
+            <div>
+                <div>
+                    <div>
+                        <span>性别:</span>
+                        <span>年龄:</span>
+                        <span>时长:</span>
+                        <span>位置:</span>
+                    </div>
+                    <div>
+                        <span>${userPanelData.sex === 'male' ? '男' : '女'}</span>
+                        <span>${(new Date().getFullYear() - new Date(userPanelData.birthday).getFullYear()) <= 0 ? 1 : (new Date().getFullYear() - new Date(userPanelData.birthday).getFullYear())}</span>
+                        <span>${res.duration}天</span>
+                        <span>${userPanelData.place === '' ? '火星' : userPanelData.place}</span>
+                    </div>
+                </div>
+            </div>
+            <div><button class="singleChatBtn" data-to="${userPanelData.name}" data-avatar="${userPanelData.avatar}">发起聊天</button></div>
+        </div>
+        `;
+        var $userInfoModel = $('.user-info');
+        $userInfoModel.append(commonHtml);
+        $userInfoModel.show().css({
+            opacity: 1,
+            transform: 'scale(1)',
+        });
+        $mask.show();
+    }
+});
 
 
 
@@ -1234,7 +1235,7 @@ App.prototype = {
         socket.emit('checkUser', user);     // 向服务端发送请求检查用户状态
     },
     checkNoReadMsg(user) {                      // 检查离线状态下的未读消息, 初始化
-        socket.emit('Offline noRead messages',user);
+        socket.emit('Offline noRead messages', user);
     },
     logout() {          // 退出登录
         localStorage.removeItem('UserInfo');
@@ -1524,7 +1525,7 @@ App.prototype = {
             if (dataUserPanel === f) return;
             $('.chat-panel').remove();
             // 如果 $empty 存在就删掉它
-            $empty && $empty.remove() && $('.lyric_content').show(); 
+            $empty && $empty.remove() && $('.lyric_content').show();
             var dataObj = {
                 com: {
                     avatar: dataUserPanel === 'all' ? '/images/sleep.gif' : avatar,
@@ -1547,7 +1548,7 @@ App.prototype = {
     },
     player() {
         //参数1：歌词容器选择器，参数2：歌单id，参数3：歌曲重定向地址，用于欺骗浏览器音频跨域显示频谱
-        // playmusic('.description', '432778620');
+        playmusic('.description', '432778620');
     },
 }
 

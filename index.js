@@ -91,7 +91,32 @@ io.on('connection', function(socket) {
         console.log(name,'调取离线未读消息');
         var query = { to: name, read: false };
         Messages.find(query, function(err,result) {
-            users[name].emit('Offline noRead messages', result);
+            users[name] && users[name].emit('Offline noRead messages', result);
+        });
+    });
+
+    // 调取用户信息
+    socket.on('take userInfo', function(name) {
+        var query = { name: name };
+        User.findOne(query, function(err,result) {
+            if(err) throw err;
+            if(result !== null) {
+                // 记录时长
+                var date = new Date().getTime();                        // 时间戳
+                var duration = Math.ceil((date - result.date) / (1000 * 60 * 60 * 24));     // 向上取整
+                var s = {};
+                for(var i in result) {
+                    var arr = ['name', 'avatar', 'date', 'sex', 'birthday', 'website', 'place', 'github', 'qq'];
+                    if(arr.indexOf(i) !== -1) {
+                        s[i] = result[i];
+                    }
+                }
+                var c = {
+                    Data: s,
+                    duration: duration
+                };
+                socket.emit('take userInfo', c);
+            }
         });
     });
 

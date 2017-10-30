@@ -32,7 +32,6 @@ mongoose.model('userLoginState', LoginStateSchema);
 
 var MessagesSchema = new mongoose.Schema({
     from: String,
-    userPanelData: String,
     avatar: String,
     to: String,
     message: String,
