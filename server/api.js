@@ -18,8 +18,8 @@ var crypto = require('crypto');
 var $salt = '^ThisisEmliceChat$';           // 简单的静态加盐
 
 // 静态资源服务器地址配置
-var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
-// var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
+// var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
+var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
 
 
 // 配置登录逻辑
@@ -167,6 +167,11 @@ app.post(api + '/userEdit', function(req, res) {
                     if(err) {
                         res.send({ Code: -2, Str: '用户信息修改失败, 请刷新重新尝试!' });
                     } else {
+                        // 更新数据库 Messages 表下改用户的所有信息
+                        Messages.updateMany({from: result.name}, { $set: { avatar: result.avatar } }, {}, function(err, result) {
+                            if(err) throw err;
+                            console.log(`${result.name}用户消息修改结果：`,result);
+                        });
                         res.send({ Code: 0, Str: '用户信息修改成功!', Data: parseStr });
                     }
                 });

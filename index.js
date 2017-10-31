@@ -49,7 +49,6 @@ io.on('connection', function(socket) {
     socket.on('user join', function(user) {
         username = user;
         users[user] = socket;
-        console.log(Object.keys(users));
         emitOnlineUser(users);          // 用户加入发射在线用户信息
     });
 
@@ -79,7 +78,6 @@ io.on('connection', function(socket) {
                 idArr.push(msgArr[i]._id);
             }
         }
-        console.log('查看ID',idArr);
         Messages.update({ _id: { $in: idArr } },{ $set: { read: true } }, { multi: true }, function(err,result) {
             if(err) throw err;
             console.log('已阅读：',result);
@@ -122,7 +120,6 @@ io.on('connection', function(socket) {
 
 
     socket.on('message', function(res) {
-        console.log(res);
         // 把消息保存到数据库
         res.date = Date.now();
         var msg = new Messages(res);

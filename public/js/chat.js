@@ -7,8 +7,8 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
-// const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+// const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
+const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
 const USER_INFO_EDIT = '/api/userEdit';                         // 用户信息上传
@@ -331,7 +331,7 @@ MyComponents.prototype = {
     userListItem(obj) {
         var oHtml = `
         <div class="user-list-item" data-user="${obj.to}">
-            <img class="avatar-image" src="${obj.avatar}?${Date.now()}" alt="">
+            <img class="avatar-image" src="${obj.avatar}" alt="">
             <div class="unread">0</div>
             <div class="content">
                 <div>
@@ -391,6 +391,10 @@ function noticeProcess(param) {
     } else if (t === '%') {
         return `[图片]`;
     } else {
+        var FTA = param.match(/^(https?|ftp|file):\/\//g);
+        var f = param.match(/.*(\.png|\.jpg|\.jpeg|\.gif)$/);
+        if(f !== null) return `[远程地址图片]`;
+        if(FTA !== null) return `[链接]`; 
         return param;
     }
 }
@@ -768,10 +772,18 @@ Connect.prototype = {
                     `;
                 } else {
                     var FTA = param.match(/^(https?|ftp|file):\/\//g);
+                    var f = param.match(/.*(\.png|\.jpg|\.jpeg|\.gif)$/);
+                    if(f !== null) {
+                        return `
+                            <div class="image">
+                                <img src="${param}" onerror="this.src='/images/imgError.jpg'" style="max-height: 200px;">
+                            </div>
+                        `;
+                    }
                     if (FTA !== null) {
                         return `
                             <div class="text">
-                                <a href="${param}" rel="noopener noreferrer" target="_blank">${param}</a>
+                                <a class="imageURL" href="${param}" rel="noopener noreferrer" target="_blank">${param}</a>
                             </div>
                         `;
                     } else {
@@ -925,7 +937,7 @@ $win.on('paste', '.input-box input', function (e) {
 
 // render message
 socket.on('message', function (res) {
-    console.log('接受消息并打印, 准备送往渲染工厂：', res);
+    // console.log('接受消息并打印, 准备送往渲染工厂：', res);
 
     /**
      *  from 来自谁的消息
@@ -1075,9 +1087,10 @@ socket.on('Offline noRead messages', function (res) {
                 fromArr[res[i].from].noRead = 1;
             } else {
                 fromArr[res[i].from].noRead++;
+                fromArr[res[i].from].lastMsg = res[i].message;
+                fromArr[res[i].from].lastMsgDate = res[i].date;
             }
         }
-
         for (var k in fromArr) {
             var f = $userList.find('.user-list-item[data-user=' + k + ']');
             if (f.length === 0 && k !== window.c.userAllInfo.username && k !== 'all') {
@@ -1090,6 +1103,10 @@ socket.on('Offline noRead messages', function (res) {
                 c.myUserListArr[k] = {
                     noRead: fromArr[k].noRead
                 };
+                // 渲染最后一条消息
+                
+                $('.user-list-item[data-user=' + k + '] .content div').eq(1).find('p').text(k + '：' + noticeProcess(fromArr[k].lastMsg));
+                $('.user-list-item[data-user=' + k + '] .content div').eq(0).find('p').eq(1).text((new Date(fromArr[k].lastMsgDate).format('hh:mm')));
             }
         }
 
