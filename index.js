@@ -120,6 +120,7 @@ io.on('connection', function(socket) {
 
 
     socket.on('message', function(res) {
+        console.log(res);
         // 把消息保存到数据库
         res.date = Date.now();
         var msg = new Messages(res);

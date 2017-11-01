@@ -7,8 +7,8 @@ var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-// const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
-const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
+// const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
 const USER_INFO_EDIT = '/api/userEdit';                         // 用户信息上传
@@ -773,7 +773,7 @@ Connect.prototype = {
                 } else {
                     var FTA = param.match(/^(https?|ftp|file):\/\//g);
                     var f = param.match(/.*(\.png|\.jpg|\.jpeg|\.gif)$/);
-                    if(f !== null) {
+                    if(FTA !== null && f !== null) {
                         return `
                             <div class="image">
                                 <img src="${param}" onerror="this.src='/images/imgError.jpg'" style="max-height: 200px;">
@@ -1055,11 +1055,15 @@ socket.on('user join', function (res) {
     for (var i = 0; i < res.length; i++) {
         var $user = $(`.user-list .user-list-item[data-user=${res[i].name}]`);
         var $userPanel = $(`.chat-panel[chat-type=${res[i].name}]`);
+        var $userMsgAvatar = $(`.native-message .avatar-image[data-username=${res[i].name}]`);
         if ($user.length !== 0) {
-            $user.find('img').attr('src', res[i].avatar + '?' + Date.now());
+            $user.find('img').attr('src', res[i].avatar);
         }
         if ($userPanel.length !== 0) {
-            $userPanel.find('.chat-panel-header .avatar-image').attr('src', res[i].avatar + '?' + Date.now());
+            $userPanel.find('.chat-panel-header .avatar-image').attr('src', res[i].avatar);
+        }
+        if($userMsgAvatar.length !== 0) {
+            $userMsgAvatar.attr('src', res[i].avatar);
         }
     }
     // 更新 online Panel
@@ -1087,6 +1091,8 @@ socket.on('Offline noRead messages', function (res) {
                 fromArr[res[i].from].noRead = 1;
             } else {
                 fromArr[res[i].from].noRead++;
+            }
+            if(i === res.length -1) {
                 fromArr[res[i].from].lastMsg = res[i].message;
                 fromArr[res[i].from].lastMsgDate = res[i].date;
             }
@@ -1398,7 +1404,7 @@ App.prototype = {
         });
         $('.user-setting .avatar-image').siblings('input[type=file]').on('change', function (e) {
             var t = $(this)[0].files[0];
-            if (t.size > 1.5 * 1024 * 1024) {
+            if (t && t.size > 1.5 * 1024 * 1024) {
                 layer.msg('图片太大, 请压缩后重新上传~');
                 return;
             }
@@ -1570,3 +1576,17 @@ App.prototype = {
 }
 
 app = new App();
+
+
+
+// var showImg = function (url) {
+//     var frameid = 'frameimg' + Math.random();
+//     window.img = '<img id="img"  src=\'' + url + '?' + Math.random() + ' \' style="max-height: 200px; cursor: zoom-in;"  /><script>window.onload = function() { parent.document.getElementById(\'' + frameid + '\').maxHeight = document.getElementById(\'img\').height+\'px\'; }<' + '/script>';
+//     return '<iframe id="' + frameid + '" src="javascript:parent.img;" frameBorder="0" scrolling="no" width="100%"></iframe>';
+// }
+
+
+
+
+
+// '/api/imgURL?imgPath=https://pic2.zhimg.com/50/v2-0f51799c3bbb9f4978061789c517463d_hd.gif'

@@ -1,3 +1,5 @@
+var http = require('http');
+var url = require('url');
 var express = require('express');
 var app = express();
 var mongoose = require('mongoose');
@@ -18,8 +20,8 @@ var crypto = require('crypto');
 var $salt = '^ThisisEmliceChat$';           // 简单的静态加盐
 
 // 静态资源服务器地址配置
-// var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
-var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
+var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
+// var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
 
 
 // 配置登录逻辑
@@ -167,11 +169,6 @@ app.post(api + '/userEdit', function(req, res) {
                     if(err) {
                         res.send({ Code: -2, Str: '用户信息修改失败, 请刷新重新尝试!' });
                     } else {
-                        // 更新数据库 Messages 表下改用户的所有信息
-                        Messages.updateMany({from: result.name}, { $set: { avatar: result.avatar } }, {}, function(err, result) {
-                            if(err) throw err;
-                            console.log(`${result.name}用户消息修改结果：`,result);
-                        });
                         res.send({ Code: 0, Str: '用户信息修改成功!', Data: parseStr });
                     }
                 });
@@ -179,6 +176,59 @@ app.post(api + '/userEdit', function(req, res) {
         });
     });
 });
+
+
+// 图片防盗链处理
+app.get(api + '/imgURL', function(req,res) {
+    var u = req.query.imgPath;
+    
+    var params = url.parse(u, true);
+    var IMGS = new imageServer(http, url);
+    IMGS.http(params.query.url, function(data) {
+        res.writeHead(200, {"Content-Type": data.type});
+        res.write(data.body, "binary");
+        res.end();
+    });
+
+});
+
+
+var imageServer = function(http, url) {
+    var _url = url;
+    var _http = http;
+
+    this.http = function(url, callback, method) {
+        method = method || 'GET';
+        callback = callback ||
+        function() {};
+        var urlData = _url.parse(url);
+        var request = _http.createClient(80, urlData.host).
+        request(method, urlData.pathname, {
+            "host": urlData.host
+        });
+
+        request.end();
+
+        request.on('response', function(response) {
+            var type = response.headers["content-type"],
+                body = "";
+            response.setEncoding('binary');
+            response.on('end', function() {
+                var data = {
+                    type: type,
+                    body: body
+                };
+                callback(data);
+
+            });
+            response.on('data', function(chunk) {
+                if (response.statusCode == 200) body += chunk;
+            });
+        });
+
+    };
+};
+
 
 
 
