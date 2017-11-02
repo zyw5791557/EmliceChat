@@ -3,15 +3,24 @@
  * c    连接实例
  * app  应用实例
  */
+
+/**
+ *  expression   表情
+ *  printscreen  截图
+ *  code         代码
+ */
+
+
 var c, app;
 
 // 客户端配置项
 // 静态资源服务器 API
-const BASE_URL = 'http://localhost:8989';                         // 本地测试服务器
-// const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+// const BASE_URL = 'http://localhost:8989';                               // 本地测试服务器
+const BASE_URL = 'http://static.emlice.top';                         // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
-const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';              // 截图上传 API
-const USER_INFO_EDIT = '/api/userEdit';                         // 用户信息上传
+const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';                      // 截图上传 API
+const DELETE_DATA = BASE_URL + '/api/clearData';                        // 管理员权限删除数据
+const USER_INFO_EDIT = '/api/userEdit';                                 // 用户信息上传
 const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';
 const WEB_SITE = 'https://www.emlice.top';
 
@@ -235,8 +244,8 @@ MyComponents.prototype = {
         <div class="code-input" style="opacity: 0; transform: scale(0); display: none;">
             <textarea placeholder="输入要展示的代码"></textarea>
             <div>
-                <button>发送</button>
-                <button>取消</button></div>
+                <button class="sendCode">发送</button>
+                <button class="cancelCode">取消</button></div>
         </div>
         `;
 
@@ -376,24 +385,24 @@ Date.prototype.format = function (fmt) {
     return fmt;
 }
 // 消息提示加工厂
-function noticeProcess(param) {
-    var t = param.charAt(0);
-    if (t === '#') {
-        var query = param.substr(1);
+function noticeProcess(param, type) {
+    if (type === 'expression') {
         var baidu_idx;
         baidu.some((item, index) => {
-            if (item === query) {
+            if (item === param) {
                 baidu_idx = index;
             }
         });
         if (baidu_idx === undefined) return param;
         return `[表情]`;
-    } else if (t === '%') {
+    } else if (type === 'printscreen') {
         return `[图片]`;
+    } else if(type === 'code') {
+        return `[代码片段]`;
     } else {
         var FTA = param.match(/^(https?|ftp|file):\/\//g);
         var f = param.match(/.*(\.png|\.jpg|\.jpeg|\.gif)$/);
-        if(f !== null) return `[远程地址图片]`;
+        if(FTA !== null && f !== null) return `[远程地址图片]`;
         if(FTA !== null) return `[链接]`; 
         return param;
     }
@@ -413,6 +422,74 @@ function onlinePanel(obj) {
     }
     return str;
 }
+
+
+// 消息渲染处理中心
+function msgProcess(param, type) {
+    var t = param.charAt(0);
+    if (type === 'expression' || t === '#') {
+        if(type === 'expression') {
+            var query = param;
+        }else {
+            var query = param.substr(1);
+        }
+        var baidu_idx;
+        baidu.some((item, index) => {
+            if (item === query) {
+                baidu_idx = index;
+            }
+        });
+        if (baidu_idx === undefined) {
+            return `
+                <div class="text">
+                    ${param}
+                </div>
+            `;
+        }
+        return `
+            <div class="text">
+                <img class="expression-default-message" src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" style="background-position: left -${baidu_idx * baidu_space}px; background-image: url(${baidu_address})" onerror="this.style.display='none'">
+            </div>
+        `;
+    } else if (type === 'printscreen') {
+        return `
+            <div class="image">
+                <img src="${param}" onerror="this.src='/images/imgError.jpg'" style="max-height: 200px;">
+            </div>
+        `;
+    } else if (type === 'code') {
+        var code = param.substr(1);
+        return `
+            <div class="code"><pre><code>${code}</code></pre></div>
+        `;
+    } else {
+        var FTA = param.match(/^(https?|ftp|file):\/\//g);
+        var f = param.match(/.*(\.png|\.jpg|\.jpeg|\.gif)$/);
+        // 远程图片链接解析, 接口反防盗链
+        if(FTA !== null && f !== null) {
+            return `
+                <div class="image">
+                    <img src="/api/imgload?url=${param}" onerror="this.src='/images/imgError.jpg'" style="max-height: 200px;">
+                </div>
+            `;
+        }
+        // 渲染链接
+        if (FTA !== null) {
+            return `
+                <div class="text">
+                    <a class="imageURL" href="${param}" rel="noopener noreferrer" target="_blank">${param}</a>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="text">
+                    ${param}
+                </div>
+            `;
+        }
+    }
+}
+
 
 
 // 向上滚动加载
@@ -571,7 +648,7 @@ UserInfo.prototype = {
         // 聊天工具栏阻止冒泡
         // 表情包面板阻止事件冒泡
         // 右侧浮动面板阻止事件冒泡 online
-        $body.on('click', '.chat-panel .toolbar div, .chat-panel .expression', function (e) {
+        $body.on('click', '.chat-panel .toolbar div, .chat-panel .expression, .chat-panel .code-input', function (e) {
             var e = e || window.event;
             e.stopPropagation();
         });
@@ -585,7 +662,8 @@ UserInfo.prototype = {
                 from: window.c.userAllInfo.username,
                 avatar: window.c.userAllInfo.userAvatar,
                 to: to,
-                message: `#${baidu[idx]}`,
+                message: `${baidu[idx]}`,
+                type: 'expression',
                 date: new Date().getTime(),
                 read: false,
             }
@@ -605,10 +683,43 @@ UserInfo.prototype = {
                     transform: "scale(1)",
                 });
                 $mask.show();
-            } else {
+            } else if(idx === 2) {
+                $('.chat-panel .code-input').show().css({
+                    opacity: 1,
+                    transform: "scale(1)",
+                });
+                $mask.show();
+            }else {
                 layer.msg('暂未开放');
             }
         });
+
+        // 代码格式化
+        $body.on('click', '.chat-panel .code-input .sendCode', function () {
+            var val = $('textarea').val();
+            // 发送消息
+            var to = $(this).parents('.chat-panel').attr('chat-type');
+            var msg = {
+                from: window.c.userAllInfo.username,
+                avatar: window.c.userAllInfo.userAvatar,
+                to: to,
+                message: `${val}`,
+                type: 'code',
+                date: new Date().getTime(),
+                read: false,
+            }
+            window.c.sendMsg(msg);
+            _this.closeTool();
+            $mask.hide();
+            $('textarea').val('');
+        });
+
+        // 取消编辑代码
+        $body.on('click', '.chat-panel .code-input .cancelCode', function () {
+            _this.closeTool();
+            $mask.hide();
+        });
+
         $body.on('click', '.chat-panel .expression .select-panel div', function () {
             var idx = $(this).index();
             $(this).addClass('selected').siblings().removeClass('selected');
@@ -712,13 +823,13 @@ Connect.prototype = {
                 // 渲染时间和消息
                 if (res[i].to === 'all') {
                     // console.log('提示群聊消息咯');
-                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message,res[i].type));
                     $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm')));
                 } else {
                     // console.log('提示私聊消息咯');
-                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
+                    $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message,res[i].type));
                     $('.user-list-item[data-user=' + res[i].to + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm')));
-                    $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message));
+                    $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(1).find('p').text(res[i].from + '：' + noticeProcess(res[i].message,res[i].type));
                     $('.user-list-item[data-user=' + res[i].from + '] .content div').eq(0).find('p').eq(1).text((new Date(res[i].date).format('hh:mm')));
                 }
             }
@@ -733,69 +844,6 @@ Connect.prototype = {
 
             var isMy = window.c.userAllInfo.username == res[i].from ? true : false;
 
-            function msgProcess(param) {
-                var t = param.charAt(0);
-                if (t === '#') {
-                    var query = param.substr(1);
-                    var baidu_idx;
-                    baidu.some((item, index) => {
-                        if (item === query) {
-                            baidu_idx = index;
-                        }
-                    });
-                    if (baidu_idx === undefined) {
-                        return `
-                            <div class="text">
-                                ${param}
-                            </div>
-                        `;
-                    }
-                    return `
-                        <div class="text">
-                            <img class="expression-default-message" src="data:image/png;base64,R0lGODlhFAAUAIAAAP///wAAACH5BAEAAAAALAAAAAAUABQAAAIRhI+py+0Po5y02ouz3rz7rxUAOw==" style="background-position: left -${baidu_idx * baidu_space}px; background-image: url(${baidu_address})" onerror="this.style.display='none'">
-                        </div>
-                    `;
-                } else if (t === '%') {
-                    var imgSrc = param.substr(1);
-                    var f = imgSrc.match(/^(https?|ftp|file):\/\//g);
-                    if (f === null) {
-                        return `
-                        <div class="text">
-                            ${param}
-                        </div>
-                        `;
-                    }
-                    return `
-                        <div class="image">
-                            <img src="${imgSrc}" onerror="this.src='/images/imgError.jpg'" style="max-height: 200px;">
-                        </div>
-                    `;
-                } else {
-                    var FTA = param.match(/^(https?|ftp|file):\/\//g);
-                    var f = param.match(/.*(\.png|\.jpg|\.jpeg|\.gif)$/);
-                    if(FTA !== null && f !== null) {
-                        return `
-                            <div class="image">
-                                <img src="${param}" onerror="this.src='/images/imgError.jpg'" style="max-height: 200px;">
-                            </div>
-                        `;
-                    }
-                    if (FTA !== null) {
-                        return `
-                            <div class="text">
-                                <a class="imageURL" href="${param}" rel="noopener noreferrer" target="_blank">${param}</a>
-                            </div>
-                        `;
-                    } else {
-                        return `
-                            <div class="text">
-                                ${param}
-                            </div>
-                        `;
-                    }
-                }
-
-            }
             var commonHtml = `
                     <img class="avatar-image user-icon" src="${res[i].avatar}" alt="" data-username="${res[i].from}">
                     <div>
@@ -803,7 +851,7 @@ Connect.prototype = {
                             <span class="message-username">${res[i].from}</span>
                             <span>${(new Date(res[i].date).format('hh:mm:ss'))}</span>
                         </div>
-                        ${msgProcess(res[i].message)}
+                        ${msgProcess(res[i].message,res[i].type)}
                     </div>
             `;
             var myHtml = `
@@ -838,6 +886,13 @@ Connect.prototype = {
             domSelector: '.native-message .image img',
             animation: true
         });
+
+        
+
+        $('pre code').each(function(i, block) {
+            hljs.highlightBlock(block);
+        });
+
         /**
          * 创建 imagesLoaded 实例
          * 确保 image 加载完毕改变聊天室 scrollTop
@@ -869,6 +924,7 @@ $win.on('keydown', '.input-box input', function (e) {
             avatar: window.c.userAllInfo.userAvatar,
             to: to,
             message: m,
+            type: 'normal',
             date: new Date().getTime(),
             read: false,
         }
@@ -907,7 +963,8 @@ var imgReader = function (item) {
                 from: window.c.userAllInfo.username,
                 avatar: window.c.userAllInfo.userAvatar,
                 to: to,
-                message: `%${d}`,
+                message: `${d}`,
+                type: 'printscreen',
                 date: new Date().getTime(),
                 read: false,
             }
@@ -1002,7 +1059,7 @@ socket.on('message', function (res) {
                         lang: "zh-CN",
                         // tag: "testNotice",
                         icon: '/images/sleep.gif',
-                        body: `${res[0].from}：${noticeProcess(res[0].message)}`,
+                        body: `${res[0].from}：${noticeProcess(res[0].message,res[0].type)}`,
                         // renotify: true,     // 是否替换之前的通知
                     });
                     notification.onclick = function () {
@@ -1095,6 +1152,7 @@ socket.on('Offline noRead messages', function (res) {
             if(i === res.length -1) {
                 fromArr[res[i].from].lastMsg = res[i].message;
                 fromArr[res[i].from].lastMsgDate = res[i].date;
+                fromArr[res[i].from].lastMsgType = res[i].type;
             }
         }
         for (var k in fromArr) {
@@ -1111,7 +1169,7 @@ socket.on('Offline noRead messages', function (res) {
                 };
                 // 渲染最后一条消息
                 
-                $('.user-list-item[data-user=' + k + '] .content div').eq(1).find('p').text(k + '：' + noticeProcess(fromArr[k].lastMsg));
+                $('.user-list-item[data-user=' + k + '] .content div').eq(1).find('p').text(k + '：' + noticeProcess(fromArr[k].lastMsg,fromArr[k].lastMsgType));
                 $('.user-list-item[data-user=' + k + '] .content div').eq(0).find('p').eq(1).text((new Date(fromArr[k].lastMsgDate).format('hh:mm')));
             }
         }
@@ -1250,8 +1308,14 @@ App.prototype = {
             window.c.userAllInfo.qq = userQq;
             window.c.userAllInfo.duration = duration;
             window.c.usernameEmit(userName);           // 发送服务端注册用户 socket
+            this.checkPermission(userName);            // 用户权限检查
             this.DBcheckUserState(userName);           // 检查用户状态
             this.checkNoReadMsg(userName);             // 检查离线状态下的未读消息, 初始化
+        }
+    },
+    checkPermission(user) {
+        if(user !== 'Emlice') {
+            $('#clearData').remove().off();         // 删除权限节点和事件
         }
     },
     DBcheckUserState(user) {                // 数据库检查用户是否存在
@@ -1505,6 +1569,24 @@ App.prototype = {
         $('.system-setting div:eq(1) .button').eq(1).on('click', function () {
             window.open(WEB_SITE, '_blank');
         });
+        // 管理员权限清理数据库
+        $('.system-setting div:eq(1) #clearData').on('click', function () {
+            axios({
+                method: 'POST',
+                url: DELETE_DATA,
+                data: {
+                    user: window.c.userAllInfo.username
+                }
+            }).then(res => {
+                var code = res.data.Code;
+                var str = res.data.Str;
+                if(code === 0) {
+                    layer.msg(str, { icon: 1 });
+                } else {
+                    layer.msg(str, { icon: 2 });
+                }
+            });
+        });
 
         // 编辑用户信息
         $('.user-setting').on('click', '.normal-status button', function () {
@@ -1578,15 +1660,3 @@ App.prototype = {
 app = new App();
 
 
-
-// var showImg = function (url) {
-//     var frameid = 'frameimg' + Math.random();
-//     window.img = '<img id="img"  src=\'' + url + '?' + Math.random() + ' \' style="max-height: 200px; cursor: zoom-in;"  /><script>window.onload = function() { parent.document.getElementById(\'' + frameid + '\').maxHeight = document.getElementById(\'img\').height+\'px\'; }<' + '/script>';
-//     return '<iframe id="' + frameid + '" src="javascript:parent.img;" frameBorder="0" scrolling="no" width="100%"></iframe>';
-// }
-
-
-
-
-
-// '/api/imgURL?imgPath=https://pic2.zhimg.com/50/v2-0f51799c3bbb9f4978061789c517463d_hd.gif'

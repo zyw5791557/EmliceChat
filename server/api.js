@@ -1,5 +1,3 @@
-var http = require('http');
-var url = require('url');
 var express = require('express');
 var app = express();
 var mongoose = require('mongoose');
@@ -15,13 +13,17 @@ mongoose.Promise = global.Promise;  // 为了避免警告的出现, 因为 mongo
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }))
 
+var http = require('http');
+var url = require('url');
+
+
 // 加密
 var crypto = require('crypto');
 var $salt = '^ThisisEmliceChat$';           // 简单的静态加盐
 
 // 静态资源服务器地址配置
-var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
-// var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
+// var STATIC_SERVER = "http://localhost:8989";        // 本地测试地址
+var STATIC_SERVER = "http://static.emlice.top";        // 服务器地址
 
 
 // 配置登录逻辑
@@ -179,55 +181,26 @@ app.post(api + '/userEdit', function(req, res) {
 
 
 // 图片防盗链处理
-app.get(api + '/imgURL', function(req,res) {
-    var u = req.query.imgPath;
-    
-    var params = url.parse(u, true);
-    var IMGS = new imageServer(http, url);
-    IMGS.http(params.query.url, function(data) {
-        res.writeHead(200, {"Content-Type": data.type});
-        res.write(data.body, "binary");
-        res.end();
-    });
-
+app.get( api + '/imgload', function (req, rres) {
+    var imgURL = req.query.url
+    var urlParse = url.parse(imgURL);
+    var hostname = urlParse.hostname;
+    // req.header('Access-Control-Allow-Origin','*');
+    // req.header('Content-type', 'image/*;charset=UTF-8');
+    http.request({
+        hostname: hostname,
+        port: 80,
+        path: imgURL,
+        method: req.method
+    }, function (res) {
+        res.on('data', function (data) {
+            rres.write(data);
+        });
+        res.on('end', function () {
+            rres.end();
+        });
+    }).end();
 });
-
-
-var imageServer = function(http, url) {
-    var _url = url;
-    var _http = http;
-
-    this.http = function(url, callback, method) {
-        method = method || 'GET';
-        callback = callback ||
-        function() {};
-        var urlData = _url.parse(url);
-        var request = _http.createClient(80, urlData.host).
-        request(method, urlData.pathname, {
-            "host": urlData.host
-        });
-
-        request.end();
-
-        request.on('response', function(response) {
-            var type = response.headers["content-type"],
-                body = "";
-            response.setEncoding('binary');
-            response.on('end', function() {
-                var data = {
-                    type: type,
-                    body: body
-                };
-                callback(data);
-
-            });
-            response.on('data', function(chunk) {
-                if (response.statusCode == 200) body += chunk;
-            });
-        });
-
-    };
-};
 
 
 

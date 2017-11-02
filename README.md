@@ -11,20 +11,21 @@ EmliceChat是一款web聊天应用. 使用node.js, express和jquery编写.
 ## 功能
 
 0. 创建用户, 私聊, 群聊
-1. 文本, 图片, 代码, url等多种类型消息
+1. 文本, 图片, 代码, url,截图,跨域图片等多种类型消息
 2. 桌面通知, 声音提醒, 通知开关
 3. 头像修改, 群组公告修改,用户信息修改
 4. 简易的插件系统
 5. 内置音乐播放器
 6. 消息类型自动解析
-7. 剪切板复制图片等功能
+7. 剪切板复制图片
+8. 反防盗链技术
 
 ## 安装
 
 该项目依赖于node.js(>= 8.2.1)和mongodb数据库. 安装[node.js](https://npm.taobao.org/mirrors/node). 安装[mongodb](https://docs.mongodb.com/manual/installation/).
 
 0. 克隆项目到本地
-   `git clone git@https://github.com/zyw5791557/EmliceChat`
+    `git clone git@https://github.com/zyw5791557/EmliceChat`
 1. 进行项目目录执行
   `yarn` 或者 `npm install
 2. 运行项目服务端

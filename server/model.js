@@ -35,6 +35,7 @@ var MessagesSchema = new mongoose.Schema({
     avatar: String,
     to: String,
     message: String,
+    type: String,
     date: Number,
     read: Boolean
 });
