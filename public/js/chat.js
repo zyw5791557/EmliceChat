@@ -1,7 +1,9 @@
 
 /**
- * c    连接实例
- * app  应用实例
+ * c            连接实例
+ * app          应用实例
+ * userInfo     用户实例
+ * components   组件实例
  */
 
 /**
@@ -11,7 +13,7 @@
  */
 
 
-var c, app;
+var components, c, app, userInfo;
 
 // 客户端配置项
 // 静态资源服务器 API
@@ -21,8 +23,8 @@ const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头�
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';                      // 截图上传 API
 const DELETE_DATA = BASE_URL + '/api/clearData';                        // 管理员权限删除数据
 const USER_INFO_EDIT = '/api/userEdit';                                 // 用户信息上传
-const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';
-const WEB_SITE = 'https://www.emlice.top';
+const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';         // 源码
+const WEB_SITE = 'https://www.emlice.top';                              // 站点
 
 // 表情配置表
 const baidu_address = BASE_URL + '/images/expressions/baidu.png';		// 百度表情地址
@@ -36,8 +38,7 @@ const baidu = [
 const baidu_space = 30;
 
 // 连接命名
-var c,
-    $doc = $(document),
+var $doc = $(document),
     $win = $('#app .windows'),
     $mask = $('.mask-layout'),
     $body = $('.body'),
@@ -303,7 +304,7 @@ MyComponents.prototype = {
         var com = `
         <div class="chat-panel-header">
             <div>
-                <img class="avatar-image" src="${dataObj.com.avatar}?${Date.now()}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
+                <img class="avatar-image" src="${dataObj.com.avatar}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
                 <p>${dataObj.com.username}</p>
             </div>
             ${notic()}
@@ -357,7 +358,7 @@ MyComponents.prototype = {
     }
 }
 
-var components = new MyComponents();
+
 
 
 // 公共方法 
@@ -365,13 +366,13 @@ var components = new MyComponents();
 // Date format
 Date.prototype.format = function (fmt) {
     var o = {
-        "M+": this.getMonth() + 1, //月份
-        "d+": this.getDate(), //日
-        "h+": this.getHours(), //小时
-        "m+": this.getMinutes(), //分
-        "s+": this.getSeconds(), //秒
-        "q+": Math.floor((this.getMonth() + 3) / 3), //季度
-        "S": this.getMilliseconds() //毫秒
+        "M+": this.getMonth() + 1,                      //月份
+        "d+": this.getDate(),                           //日
+        "h+": this.getHours(),                          //小时
+        "m+": this.getMinutes(),                        //分
+        "s+": this.getSeconds(),                        //秒
+        "q+": Math.floor((this.getMonth() + 3) / 3),    //季度
+        "S": this.getMilliseconds()                     //毫秒
     };
     if (/(y+)/.test(fmt)) {
         fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
@@ -415,7 +416,7 @@ function onlinePanel(obj) {
     for (var i = 0; i < obj.length; i++) {
         str += `
             <div data-user="${obj[i].name}">
-                <img class="avatar-image" src="${obj[i].avatar}?${Date.now()}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
+                <img class="avatar-image" src="${obj[i].avatar}" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;">
                 <span>${obj[i].name}</span>
             </div>
         `;
@@ -575,7 +576,7 @@ UserInfo.prototype = {
                     to: username,
                     avatar: avatar
                 }
-                $userList.append(components.userListItem(o));
+                $userList.append(window.components.userListItem(o));
                 // 添加临时会话成员
                 c.myUserListArr[username] = {
                     noRead: 0
@@ -600,7 +601,7 @@ UserInfo.prototype = {
             $('.chat-panel').remove();
             // console.log('重新渲染窗口')
             // 重新渲染聊天窗口
-            $body.append(components.chatPanel(dataObj, username));
+            $body.append(window.components.chatPanel(dataObj, username));
 
             // 拉去记录
             c.takeMsg({
@@ -698,17 +699,19 @@ UserInfo.prototype = {
         $body.on('click', '.chat-panel .code-input .sendCode', function () {
             var val = $('textarea').val();
             // 发送消息
-            var to = $(this).parents('.chat-panel').attr('chat-type');
-            var msg = {
-                from: window.c.userAllInfo.username,
-                avatar: window.c.userAllInfo.userAvatar,
-                to: to,
-                message: `${val}`,
-                type: 'code',
-                date: new Date().getTime(),
-                read: false,
+            if(val !== '') {
+                var to = $(this).parents('.chat-panel').attr('chat-type');
+                var msg = {
+                    from: window.c.userAllInfo.username,
+                    avatar: window.c.userAllInfo.userAvatar,
+                    to: to,
+                    message: `${val}`,
+                    type: 'code',
+                    date: new Date().getTime(),
+                    read: false,
+                }
+                window.c.sendMsg(msg);
             }
-            window.c.sendMsg(msg);
             _this.closeTool();
             $mask.hide();
             $('textarea').val('');
@@ -772,7 +775,7 @@ UserInfo.prototype = {
         $('.roomNoticePanel').css('right', '-340px');
     },
 }
-window.userInfo = new UserInfo();
+
 
 var socket = io();
 
@@ -780,23 +783,24 @@ var socket = io();
 function Connect() {
     // 用户所有消息集合
     this.userAllInfo = {
-        username: '',         // 我的连接账号即用户名
-        userAvatar: '',       // 用户头像
-        duration: '',         // 用户时长
-        sex: '',              // 性别
-        birthday: '',         // 出生日期
-        place: '',            // 位置
-        website: '',          // 站点
-        github: '',           // github
-        qq: '',               // QQ
+        username: '',           // 我的连接账号即用户名
+        userAvatar: '',         // 用户头像
+        duration: '',           // 用户时长
+        sex: '',                // 性别
+        birthday: '',           // 出生日期
+        place: '',              // 位置
+        website: '',            // 站点
+        github: '',             // github
+        qq: '',                 // QQ
 
     };
-    onlineUsers: [],        // 在线人数
-        this.myUserListArr = {      // 我的临时会话集合
-            all: {
-                noRead: 0
-            },
-        };
+    onlineUsers: [],            // 在线人数
+    this.myUserListArr = {      // 我的临时会话集合
+        all: {
+            noRead: 0
+        },
+    };
+    this.token = '';            // token
 }
 
 Connect.prototype = {
@@ -1007,7 +1011,7 @@ socket.on('message', function (res) {
                 to: res[i].from,
                 avatar: res[i].avatar
             }
-            $userList.append(components.userListItem(o));
+            $userList.append(window.components.userListItem(o));
             // 添加临时会话成员
             c.myUserListArr[res[i].from] = {
                 noRead: 0
@@ -1137,6 +1141,14 @@ socket.on('change onlinePanel', function (res) {
 });
 
 
+// 权限检查
+socket.on('check permission', function(f) {
+    if(f) {
+        $('#clearData').remove().off();         // 删除权限节点和事件
+    }
+});
+
+
 // 接受离线消息未读条数
 socket.on('Offline noRead messages', function (res) {
     var fromArr = {};
@@ -1162,7 +1174,7 @@ socket.on('Offline noRead messages', function (res) {
                     to: k,
                     avatar: fromArr[k].avatar
                 }
-                $userList.append(components.userListItem(o));
+                $userList.append(window.components.userListItem(o));
                 // 添加临时会话成员
                 c.myUserListArr[k] = {
                     noRead: fromArr[k].noRead
@@ -1295,6 +1307,7 @@ App.prototype = {
             var userWebsite = ConnectUserInfo.website;
             var userGithub = ConnectUserInfo.github;
             var userQq = ConnectUserInfo.qq;
+            var token = ConnectUserInfo.token;
             var duration = localStorage.getItem('Duration');
             // 初始化连接
             c = new Connect();
@@ -1307,6 +1320,7 @@ App.prototype = {
             window.c.userAllInfo.github = userGithub;
             window.c.userAllInfo.qq = userQq;
             window.c.userAllInfo.duration = duration;
+            window.c.token = token;
             window.c.usernameEmit(userName);           // 发送服务端注册用户 socket
             this.checkPermission(userName);            // 用户权限检查
             this.DBcheckUserState(userName);           // 检查用户状态
@@ -1314,9 +1328,7 @@ App.prototype = {
         }
     },
     checkPermission(user) {
-        if(user !== 'Emlice') {
-            $('#clearData').remove().off();         // 删除权限节点和事件
-        }
+        socket.emit('check permission', user);
     },
     DBcheckUserState(user) {                // 数据库检查用户是否存在
         socket.emit('checkUser', user);     // 向服务端发送请求检查用户状态
@@ -1485,7 +1497,7 @@ App.prototype = {
             }).then(res => {
                 var c = res.data.Code;
                 var s = res.data.Str;
-                var a = res.data.Avatar + '?' + Date.now();
+                var a = res.data.Avatar;
                 if (c === 0) {
                     // 更改本地存贮
                     window.c.userAllInfo.userAvatar = a;
@@ -1571,21 +1583,37 @@ App.prototype = {
         });
         // 管理员权限清理数据库
         $('.system-setting div:eq(1) #clearData').on('click', function () {
-            axios({
-                method: 'POST',
-                url: DELETE_DATA,
-                data: {
-                    user: window.c.userAllInfo.username
-                }
-            }).then(res => {
-                var code = res.data.Code;
-                var str = res.data.Str;
-                if(code === 0) {
-                    layer.msg(str, { icon: 1 });
-                } else {
-                    layer.msg(str, { icon: 2 });
-                }
-            });
+            if(window.c.token === undefined) {
+                layer.msg('登录超时, 请两秒后重新登录。');
+                // 删除本地用户信息
+                localStorage.removeItem('UserInfo');
+                setTimeout(function() {
+                    location.href = '/login';
+                },2000);
+            }
+            if(window.c.token === '') return;
+            // 清库询问
+            layer.confirm("Are you sure you want to clear the app's data?", function(index){
+                //do something
+                axios({
+                    method: 'POST',
+                    url: DELETE_DATA,
+                    data: {
+                        user: window.c.userAllInfo.username,
+                        token: window.c.token,
+                    }
+                }).then(res => {
+                    var code = res.data.Code;
+                    var str = res.data.Str;
+                    if(code === 0) {
+                        layer.msg(str, { icon: 1 });
+                    } else {
+                        layer.msg(str, { icon: 2 });
+                    }
+                });
+                layer.close(index);
+              });
+            
         });
 
         // 编辑用户信息
@@ -1644,7 +1672,7 @@ App.prototype = {
                     peoples: window.c.onlineUsers.length
                 }
             };
-            $body.append(components.chatPanel(dataObj, dataUserPanel));
+            $body.append(window.components.chatPanel(dataObj, dataUserPanel));
             c.takeMsg({
                 from: window.c.userAllInfo.username,
                 take: dataUserPanel,
@@ -1656,7 +1684,9 @@ App.prototype = {
         playmusic('.description', '432778620');
     },
 }
-
+// 组件分发
+components = new MyComponents();
+// 用户行为
+userInfo = new UserInfo();
+// APP 行为
 app = new App();
-
-

@@ -77,7 +77,7 @@ app.post( api + '/login',function(req,res) {
                 var duration = Math.ceil((date - result.date) / (1000 * 60 * 60 * 24));     // 向上取整
                 var s = {};
                 for(var i in result) {
-                    var arr = ['name', 'avatar', 'date', 'sex', 'birthday', 'website', 'place', 'github', 'qq'];
+                    var arr = ['name', 'avatar', 'token', 'date', 'sex', 'birthday', 'website', 'place', 'github', 'qq'];
                     if(arr.indexOf(i) !== -1) {
                         s[i] = result[i];
                     }
@@ -108,12 +108,16 @@ app.post( api + '/register', function(req, res) {
     req.on("end",function(){
         var parseStr = JSON.parse(str);
         parseStr.date = date;
+        // 使用 sha1 加密算法
+        var sha1Res = crypto.createHash('sha1').update($salt + parseStr.name).digest('hex');
+        parseStr.token = sha1Res;
         // 默认头像
         parseStr.avatar = STATIC_SERVER + '/images/users/default.png';
         var query = User.findOne({name: parseStr.name});
         query.exec(function(err,person) {
             if(err) throw err;
-            if(person == null) {// 使用 sha1 加密算法
+            if(person == null) {
+                // 使用 sha1 加密算法
                 var sha1Res = crypto.createHash('sha1').update($salt + parseStr.pwd).digest('hex');
                 parseStr.pwd = sha1Res;
                 var user = new User(parseStr);

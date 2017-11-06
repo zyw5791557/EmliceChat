@@ -1,9 +1,13 @@
-var express = require('express');
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var path = require('path');
+const express = require('express');
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+const path = require('path');
 
+// 引入配置文件
+const config = require('./config/config.js');
+// 权限列表
+$permissionArr = config.permissionArr;
 
 app.use(express.static(path.join('public')));
 app.use('/module', express.static('node_modules'));
@@ -13,16 +17,16 @@ app.use('/login', express.static('public/login.html'));
 app.use('/register', express.static('public/register.html'));
 
 // 引入数据库模块
-var Api = require('./server/api.js');
+const Api = require('./server/api.js');
 app.use(Api);
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 require('./server/connect.js');
 require('./server/model.js');
 // 获取 messages 集合并指向 Messages 
-var Messages = mongoose.model('messages');
+const Messages = mongoose.model('messages');
 // User 为 model name
-var User = mongoose.model('users');    
+const User = mongoose.model('users');    
 
 
 
@@ -43,7 +47,6 @@ var emitOnlineUser = function(u) {
 
 // socket.io code
 io.on('connection', function(socket) {
-
     var username;
 
     socket.on('user join', function(user) {
@@ -185,6 +188,13 @@ io.on('connection', function(socket) {
                 users[res] && users[res].emit('checkUser', {Code: 0, Str: '用户状态正常~'});
             }
         });
+    });
+
+    // 用户权限检查
+    socket.on('check permission', function(user) {
+        if($permissionArr.indexOf(user) == -1) {
+            socket.emit('check permission', 1);
+        }
     });
 
 });

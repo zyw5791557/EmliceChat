@@ -7,6 +7,7 @@ var UserSchema = new mongoose.Schema({  // 定义数据模型
     name: String,
     pwd: String,
     avatar: String,
+    token: String,
     date: Number,
     sex: String,
     birthday: String,
