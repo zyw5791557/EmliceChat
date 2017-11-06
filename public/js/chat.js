@@ -1590,6 +1590,7 @@ App.prototype = {
                 setTimeout(function() {
                     location.href = '/login';
                 },2000);
+                return;
             }
             if(window.c.token === '') return;
             // 清库询问
