@@ -459,9 +459,8 @@ function msgProcess(param, type) {
             </div>
         `;
     } else if (type === 'code') {
-        var code = param.substr(1);
         return `
-            <div class="code"><pre><code>${code}</code></pre></div>
+            <div class="code"><pre><code>${param}</code></pre></div>
         `;
     } else {
         var FTA = param.match(/^(https?|ftp|file):\/\//g);
