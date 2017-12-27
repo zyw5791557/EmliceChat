@@ -17,8 +17,8 @@ var components, c, app, userInfo;
 
 // 客户端配置项
 // 静态资源服务器 API
-// const BASE_URL = 'http://localhost:8989';                               // 本地测试服务器
-const BASE_URL = 'http://static.emlice.top';                         // 线上服务器
+// const BASE_URL = 'http://localhost:8989';                            // 本地测试服务器
+const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';                      // 截图上传 API
 const DELETE_DATA = BASE_URL + '/api/clearData';                        // 管理员权限删除数据
@@ -1088,7 +1088,7 @@ socket.on('message', function (res) {
 // 接受历史记录
 socket.on('take messages', function (data) {
     if (data.length !== 0) {
-        // console.log('调取离线记录：', data);
+        console.log('调取离线记录：', data);
         c.renderMsg(data);
     }
 });
