@@ -167,7 +167,7 @@ app.post(api + '/userEdit', function(req, res) {
                     birthday: parseStr.birthday,
                     place: parseStr.place,
                     website: parseStr.website,
-                    github: parseStr.website,
+                    github: parseStr.github,
                     qq: parseStr.qq
                 } };
                 // 更新数据库 User 表对应用户的信息
