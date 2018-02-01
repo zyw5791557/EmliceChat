@@ -17,8 +17,8 @@ var components, c, app, userInfo;
 
 // 客户端配置项
 // 静态资源服务器 API
-// const BASE_URL = 'http://localhost:8989';                            // 本地测试服务器
-const BASE_URL = 'http://static.emlice.top';                            // 线上服务器
+// const BASE_URL = 'http://localhost:8989';                               // 本地测试服务器
+const BASE_URL = 'http://static.emlice.top';                         // 线上服务器
 const UPLOAD_AVATAR_API = BASE_URL + '/api/avatar_upload';              // 头像上传 API
 const UPLOAD_PS_API = BASE_URL + '/api/ps_upload';                      // 截图上传 API
 const DELETE_DATA = BASE_URL + '/api/clearData';                        // 管理员权限删除数据
@@ -27,7 +27,7 @@ const SOURCE_CODE = 'https://github.com/zyw5791557/EmliceChat';         // 源�
 const WEB_SITE = 'https://www.emlice.top';                              // 站点
 
 // 表情配置表
-const baidu_address = BASE_URL + '/images/expressions/baidu.png';		// 百度表情地址
+const baidu_address = BASE_URL + '/images/expressions/baidu.png';       // 百度表情地址
 const baidu = [
     '呵呵', '哈哈', '吐舌', '啊', '酷', '怒', '开心', '汗', '泪', '黑线',
     '鄙视', '不高兴', '真棒', '钱', '疑问', '阴险', '吐', '咦', '委屈', '花心',
@@ -401,6 +401,8 @@ function noticeProcess(param, type) {
     } else if(type === 'code') {
         return `[代码片段]`;
     } else {
+        if(typeof param === Number) param.toString();
+        if(param === undefined) return;
         var FTA = param.match(/^(https?|ftp|file):\/\//g);
         var f = param.match(/.*(\.png|\.jpg|\.jpeg|\.gif)$/);
         if(FTA !== null && f !== null) return `[远程地址图片]`;
@@ -1088,7 +1090,7 @@ socket.on('message', function (res) {
 // 接受历史记录
 socket.on('take messages', function (data) {
     if (data.length !== 0) {
-        console.log('调取离线记录：', data);
+        // console.log('调取离线记录：', data);
         c.renderMsg(data);
     }
 });
@@ -1151,27 +1153,27 @@ socket.on('check permission', function(f) {
 // 接受离线消息未读条数
 socket.on('Offline noRead messages', function (res) {
     var fromArr = {};
+    var fromList = {};
     if (res.length !== 0) {
         for (let i = 0; i < res.length; i++) {
-            if (fromArr[res[i].from] === undefined) {
-                fromArr[res[i].from] = {};
-                fromArr[res[i].from].avatar = res[i].avatar;
-                fromArr[res[i].from].noRead = 1;
-            } else {
-                fromArr[res[i].from].noRead++;
+                if (fromList[res[i].from] === undefined) {
+                    fromList[res[i].from] = [res[i]];
+                } else {
+                    fromList[res[i].from].push(res[i])
+                }
             }
-            if(i === res.length -1) {
-                fromArr[res[i].from].lastMsg = res[i].message;
-                fromArr[res[i].from].lastMsgDate = res[i].date;
-                fromArr[res[i].from].lastMsgType = res[i].type;
-            }
+        for(var j in fromList) {
+            fromArr[j] = {
+                noRead: fromList[j].length,
+                lastMsg: fromList[j][fromList[j].length-1],
+            };
         }
         for (var k in fromArr) {
             var f = $userList.find('.user-list-item[data-user=' + k + ']');
             if (f.length === 0 && k !== window.c.userAllInfo.username && k !== 'all') {
                 let o = {
                     to: k,
-                    avatar: fromArr[k].avatar
+                    avatar: fromArr[k].lastMsg.avatar
                 }
                 $userList.append(window.components.userListItem(o));
                 // 添加临时会话成员
@@ -1180,7 +1182,7 @@ socket.on('Offline noRead messages', function (res) {
                 };
                 // 渲染最后一条消息
                 
-                $('.user-list-item[data-user=' + k + '] .content div').eq(1).find('p').text(k + '：' + noticeProcess(fromArr[k].lastMsg,fromArr[k].lastMsgType));
+                $('.user-list-item[data-user=' + k + '] .content div').eq(1).find('p').text(k + '：' + noticeProcess(fromArr[k].lastMsg.message,fromArr[k].lastMsg.type));
                 $('.user-list-item[data-user=' + k + '] .content div').eq(0).find('p').eq(1).text((new Date(fromArr[k].lastMsgDate).format('hh:mm')));
             }
         }
