@@ -164,8 +164,8 @@ io.on('connection', function(socket) {
                     { from: b, to: a},
                  ],
             }).
-            skip(0*20).
-            limit(20).
+            skip(0*50).
+            limit(50).
             sort('-_id').
             exec(function(err,result) {
                 // 谁调取聊天记录
